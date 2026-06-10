@@ -16,24 +16,11 @@ prop_aligned="$qc_dir/counts_summary_all_samples.txt"
 mkdir -p "/home/tomsch/WGS_36/aligned"
 aligned_dir="/home/tomsch/WGS_36/aligned"
 
-################# just for the first 5 samples ############################
-
-for name in B5047-SCH-30 B5047-SCH-31 B5047-SCH-32 B5047-SCH-33 B5047-SCH-34; do
-    fastp -i $fastq_raw/${name}_R1_001.fastq.gz \
-          -I $fastq_raw/${name}_R2_001.fastq.gz \
-          -o $fastq_clean/${name}_clean_1.fastq.gz \
-          -O $fastq_clean/${name}_clean_2.fastq.gz \
-          -h $fastq_clean/${name}_stats.html \
-          -j $fastq_clean/${name}_stats.json \
-          -w 10 --dont_overwrite --detect_adapter_for_pe \
-          -q 20 -l 30 --correction --cut_right --cut_mean_quality 20
+## adapter and low quality base trimming
+for i in "$fastq_raw"/*_R1_001.fastq.gz; \
+        do dname=$(dirname ${i}); name=$(basename ${i} _R1_001.fastq.gz); \
+        fastp -i ${dname}/${name}_R1_001.fastq.gz -I ${dname}/${name}_R2_001.fastq.gz -o $fastq_clean/${name}_clean_1.fastq.gz -O $fastq_clean/${name}_clean_2.fastq.gz -h $fastq_clean/#${name}_stats.html -j $fastq_clean/${name}_stats.json -w 10 --dont_overwrite --detect_adapter_for_pe -q 20 -l 30 --correction --cut_right --cut_mean_quality 20 ;
 done
-
-####################### fuer alle Proben ##################################
-#for i in "$fastq_raw"/*_R1_001.fastq.gz; \
-#        do dname=$(dirname ${i}); name=$(basename ${i} _R1_001.fastq.gz); \
-#        fastp -i ${dname}/${name}_R1_001.fastq.gz -I ${dname}/${name}_R2_001.fastq.gz -o $fastq_clean/${name}_clean_1.fastq.gz -O $fastq_clean/${name}_clean_2.fastq.gz -h $fastq_clean/#${name}_stats.html -j $fastq_clean/${name}_stats.json -w 10 --dont_overwrite --detect_adapter_for_pe -q 20 -l 30 --correction --cut_right --cut_mean_quality 20 ;
-#done
 
 ## call the genome (using the curated GCF version), to download here: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_003254395.2/
 
@@ -41,7 +28,7 @@ done
 samtools faidx $genome
 bwa-mem2 index $genome
 
-for i in "$fastq_clean"/B5047-SCH-30_clean_1.fastq.gz B5047-SCH-31_clean_1.fastq.gz B5047-SCH-32_clean_1.fastq.gz B5047-SCH-33_clean_1.fastq.gz B5047-SCH-34_clean_1.fastq.gz
+for i in "$fastq_clean"/*_clean_1.fastq.gz
         do dname=$(dirname "${i}"); name=$(basename "${i}" _clean_1.fastq.gz)
         echo "name is $name"
    
