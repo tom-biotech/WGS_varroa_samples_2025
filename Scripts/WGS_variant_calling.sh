@@ -3,21 +3,24 @@
 ############# VARROARESISTENZ WGS 2026 ################ 
 
 # create all_bams.list
-bam_dir="/home/Drives/HDD04_06T_SDF/Tom_WGS_Buckfast_25/fastq/Aligned_GATK"
-vcf_dir="/home/Drives/HDD04_06T_SDF/Tom_WGS_Buckfast_25/fastq/vcf"
+ref_dir="/home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2"
+bam_dir="/home/tomsch/WGS_36/aligned"
+mkdir -p "/home/tomsch/WGS_36/vcfs"
+vcf_dir="/home/tomsch/WGS_36/vcfs"
 
+##create all_bams.list and chromosomes.txt
 find $bam_dir -name "*.bam" > $bam_dir/all_bams.list
-
+cut -f 1 $ref_dir/GCF_003254395.2_Amel_HAv3.1_genomic.fna.fai > $ref_dir/chromosomes.txt
 
 # Run mpileup per chromosome using parallel 
-cat /home/Drives/HDD04_06T_SDF/Tom_WGS_Buckfast_25/ref/chromosomes.txt | parallel -j 40 \
-    "bcftools mpileup -Ou -f /home/Drives/HDD04_06T_SDF/Tom_WGS_Buckfast_25/ref/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+cat $ref_dir/chromosomes.txt | parallel -j 40 \
+    "bcftools mpileup -Ou -f $ref_dir/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
     -b $bam_dir/all_bams.list \
     -r {} -q 20 -Q 30 -d XXXXX -a FORMAT/DP,FORMAT/AD \
     -o $vcf_dir/raw_mpileup_{}.bcf"
     
 ## and run variant calling separately for each chromosome
-for i in $(cat /home/Drives/HDD04_06T_SDF/Tom_WGS_Buckfast_25/ref/chromosomes.txt)
+for i in $(cat $ref_dir/chromosomes.txt)
 do name=$(basename ${i})
     echo "processing $name"
 bcftools call -mv -v -Oz --threads 20 -o $vcf_dir/${name}_raw_snps.vcf.gz $vcf_dir/raw_mpileup_${name}.bcf
