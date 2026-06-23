@@ -5,6 +5,8 @@
 #### using bbmap 39.85
 #### using bwa-mem2 2.3
 #### using samtools 1.23.1
+#### using pandepth 2.26
+#### using alfred 0.5.3
 
 fastq_raw="/drives/HDD_22TB_RAWDATA/20260605_Genewiz_Varroaresistenz/00_fastq"
 mkdir -p "/home/tomsch/WGS_36/Clean"
@@ -59,3 +61,24 @@ do
 	count_mapped=$(samtools view -c -F 260 "$i")
 	echo "$base_name, $count_total, $count_mapped" >> "$prop_aligned"
 done
+
+## statistics for read depth and general bam QC
+## Pandepth
+for i in "$aligned_dir"/*.bam; 
+do 
+name=$(basename ${i} _rmd.bam);
+pandepth -i $i -o "$aligned_dir"/${name}_depth -t 20; 
+done
+
+mkdir "$aligned_dir"/bam_qc
+bam_qc_dir="/home/tomsch/WGS_36/aligned/bam_qc"
+
+## alfred
+parallel -j 20 '
+name=$(basename {} _rmd.bam)
+alfred qc \
+  -r "$genome" \
+  -j "$bam_qc_dir"/${name}_qc.json.gz \
+  -o "$bam_qc_dir"/${name}_qc.tsv.gz \
+  {}
+' ::: "$aligned_dir"*_rmd.bam
