@@ -4,6 +4,20 @@
 ## using grenedalf 0.6.3
 
 # create sync files from bam files
+for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
+        do name=$(basename ${i} _rmd.bam); \
+        /home/tomsch/grenedalf/bin/grenedalf sync \
+        --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+        --sam-path ${i} \
+        --sam-min-map-qual 60 \
+        --sam-min-base-qual 30 \
+        --compress \
+        --log-file /home/tomsch/WGS_36/aligned/sync_files/${i}_sync.log \
+        --threads 5 \
+        --file-prefix ${i}_ \
+        --out-dir /home/tomsch/WGS_36/aligned/sync_files;
+        done
+
 /home/tomsch/grenedalf/bin/grenedalf sync \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --sam-path B5047-SCH-25_rmd.bam B5047-SCH-26_rmd.bam \
