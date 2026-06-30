@@ -3,6 +3,12 @@
 ############# VARROARESISTENZ WGS 2026 ################ 
 ## using grenedalf 0.6.3
 
+# create sync files from bam files
+/home/tomsch/grenedalf/bin/grenedalf sync \
+--sam-path /home/tomsch/WGS_36/aligned/ \
+--sam-min-map-qual 
+
+
 # first of all we have to check which of the B211 samples is the true one
 # so we calculate the fst for samples B11(TGW)24 (B5047-SCH-44), B211T(TGW)24 (B5047-SCH-53) and B211/2(TGW)24 (B5047-SCH-54). B211T(TGW)24 is used as the control,
 # because we know that this is the true B211(TGW)24, but DNA was extracted from thorax instead as from heads
