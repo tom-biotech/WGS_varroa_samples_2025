@@ -5,8 +5,16 @@
 
 # create sync files from bam files
 /home/tomsch/grenedalf/bin/grenedalf sync \
---sam-path /home/tomsch/WGS_36/aligned/ \
---sam-min-map-qual 
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--sam-path B5047-SCH-25_rmd.bam B5047-SCH-26_rmd.bam \
+--sam-min-map-qual 60 \
+--sam-min-base-qual 30 \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned/sync_files/bam_to_sync.log \
+--threads 5 \
+--out-dir /home/tomsch/WGS_36/aligned/sync_files 
+
+
 
 
 # first of all we have to check which of the B211 samples is the true one
@@ -36,7 +44,7 @@
 --file-prefix B211_fst_calculation_ \
 --out-dir /home/tomsch/WGS_36/aligned/allele_freq_2/B211_fst \
 --compress \
---log-file \
+--log-file B211_fst.log\
 --threads 10
 
 
