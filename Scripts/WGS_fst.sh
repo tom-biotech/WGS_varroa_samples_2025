@@ -32,7 +32,7 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
 --filter-sample-min-count 2 \
 --filter-sample-min-read-depth 135 \
 --filter-sample-max-read-depth 540 \
---window-average-policy available-loci \
+--window-average-policy valid-loci \
 --filter-total-snp-min-frequency 0.01 \
 --pool-sizes 60 \
 --file-prefix B211_fst_calculation_ \
