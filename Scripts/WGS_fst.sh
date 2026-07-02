@@ -27,7 +27,7 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
 --method unbiased-hudson \
 --window-type genome \
 --write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44_sync.sync.gz B5047-SCH-53_sync.sync.gz B5047-SCH-54_sync.sync.gz \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44_sync.sync.gz /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53_sync.sync.gz /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54_sync.sync.gz \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --filter-sample-min-count 2 \
 --filter-sample-min-read-depth 135 \
@@ -38,7 +38,7 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
 --file-prefix B211_fst_calculation_ \
 --out-dir /home/tomsch/WGS_36/aligned/allele_freq_2/B211_fst \
 --compress \
---log-file B211_fst.log\
+--log-file B211_fst.log \
 --threads 10
 
 
