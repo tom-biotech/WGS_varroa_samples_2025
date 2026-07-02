@@ -12,7 +12,7 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
         --sam-min-map-qual 60 \
         --sam-min-base-qual 30 \
         --compress \
-        --log-file ${name}_sync.log \
+        --log-file /home/tomsch/WGS_36/aligned/sync_files/${name}_sync.log \
         --threads 5 \
         --file-prefix ${name}_ \
         --out-dir /home/tomsch/WGS_36/aligned/sync_files;
