@@ -9,6 +9,7 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
         /home/tomsch/grenedalf/bin/grenedalf sync \
         --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
         --sam-path ${i} \
+        --make-gapless \
         --sam-min-map-qual 60 \
         --sam-min-base-qual 30 \
         --compress \
