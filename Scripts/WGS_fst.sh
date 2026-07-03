@@ -2,8 +2,12 @@
 
 ############# VARROARESISTENZ WGS 2026 ################ 
 ## using grenedalf 0.6.3
+## using samtools 1.23.1
+## using popoolation2 1.201
 
 # create sync files from bam files
+
+############## DOESN'T WORK ###############################
 for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
         do name=$(basename ${i} _rmd.bam); \
         /home/tomsch/grenedalf/bin/grenedalf sync \
@@ -18,6 +22,17 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
         --file-prefix ${name}_ \
         --out-dir /home/tomsch/WGS_36/aligned/sync_files;
         done
+#############################################################
+
+# from samtools mpileup to sync file
+for i in B5047-SCH-{44,53,54}_rmd.bam; do name=$(basename ${i} _rmd.bam);
+cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 8 \
+"samtools mpileup -B -f /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+-q 40 -Q 20 -r {} ${i} > mpileup_files/${name}_{}.mpileup";
+done
+
+while read c; do cat B5047-SCH-44_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt > B5047-SCH-44.mpileup
+
 
 # first of all we have to check which of the B211 samples is the true one
 # so we calculate the fst for samples B11(TGW)24 (B5047-SCH-44), B211T(TGW)24 (B5047-SCH-53) and B211/2(TGW)24 
