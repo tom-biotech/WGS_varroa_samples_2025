@@ -1,4 +1,7 @@
+#!/bin/sh
 
+############# VARROARESISTENZ WGS 2026 ################ 
+## using grenedalf 0.6.3
 
 # first of all we have to check which of the B211 samples is the true one
 # so we calculate the fst for samples B11(TGW)24 (B5047-SCH-44), B211T(TGW)24 (B5047-SCH-53) and B211/2(TGW)24 
