@@ -34,7 +34,6 @@ java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input mpileup_files/${name}.mpileup --output mpileup_files/${name}.sync --fastq-type sanger --min-qual 20 --threads 10;
 done
 
-
 # first of all we have to check which of the B211 samples is the true one
 # so we calculate the fst for samples B11(TGW)24 (B5047-SCH-44), B211T(TGW)24 (B5047-SCH-53) and B211/2(TGW)24 
 # (B5047-SCH-54). B211T(TGW)24 is used as the control,
@@ -44,7 +43,7 @@ done
 --method unbiased-hudson \
 --window-type genome \
 --write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-54.sync \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54.sync \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --filter-sample-min-count 2 \
 --filter-sample-min-read-depth 135 \
@@ -53,9 +52,51 @@ done
 --filter-total-snp-min-frequency 0.01 \
 --pool-sizes 60 \
 --file-prefix B211_fst_calculation_ \
---out-dir /home/tomsch/WGS_36/aligned/mpileup_files/B211_fst \
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/B211_fst \
 --compress \
---log-file B211_fst.log \
+--log-file /home/tomsch/WGS_36/aligned/fst_files/B211_fst/B211_fst.log \
+--threads 20
+
+# just for the mitochondrium 
+# MeanDepth = 24199, Sd = 5010 -> so for Depth filter use mean +- 2*Sd -> 34219 - 14179
+
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type chromosomes \
+--filter-region NC_001566.1:1-16343 \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54.sync \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 2 \
+--filter-sample-min-read-depth 14179 \
+--filter-sample-max-read-depth 34219 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--pool-sizes 30 \
+--file-prefix B211_mito_fst_calculation_ \
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst/B211_mito_fst.log \
 --threads 20
 
 
+# Cathedral-Fst-Plot with grenedalf
+
+/home/tomsch/grenedalf/bin/grenedalf fst-cathedral \
+--method unbiased-hudson \
+--window-type chromosomes \
+--window-region NC_001566.1 \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54.sync \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 2 \
+--filter-sample-min-read-depth 14179 \
+--filter-sample-max-read-depth 34219 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--pool-sizes 30 \
+--file-prefix B211_mito_fst_calculation_ \
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst/B211_mito_fst.log \
+--threads 20
