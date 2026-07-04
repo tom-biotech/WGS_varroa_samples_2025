@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ############# VARROARESISTENZ WGS 2026 ################ 
 ## using grenedalf 0.6.3
