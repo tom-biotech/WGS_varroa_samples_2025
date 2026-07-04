@@ -28,10 +28,11 @@ for i in /home/tomsch/WGS_36/aligned/*rmd.bam; \
 for i in B5047-SCH-{44,53,54}_rmd.bam; do name=$(basename ${i} _rmd.bam);
 cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 8 \
 "samtools mpileup -B -f /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
--q 40 -Q 20 -r {} ${i} > mpileup_files/${name}_{}.mpileup";
+-q 40 -Q 20 -r {} ${i} > mpileup_files/${name}_{}.mpileup"
+while read c; do cat mpileup_files/${name}_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt > mpileup_files/${name}.mpileup
+java -ea -Xmx10g -jar \
+/home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input mpileup_files/${name}.mpileup --output mpileup_files/${name}.sync --fastq-type sanger --min-qual 20 --threads 10;
 done
-
-while read c; do cat B5047-SCH-44_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt > B5047-SCH-44.mpileup
 
 
 # first of all we have to check which of the B211 samples is the true one
@@ -43,7 +44,7 @@ while read c; do cat B5047-SCH-44_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_
 --method unbiased-hudson \
 --window-type genome \
 --write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44_sync.sync.gz /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53_sync.sync.gz /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54_sync.sync.gz \
+--sync-path /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/mpileup_files/B5047-SCH-54.sync \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --filter-sample-min-count 2 \
 --filter-sample-min-read-depth 135 \
@@ -52,9 +53,9 @@ while read c; do cat B5047-SCH-44_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_
 --filter-total-snp-min-frequency 0.01 \
 --pool-sizes 60 \
 --file-prefix B211_fst_calculation_ \
---out-dir /home/tomsch/WGS_36/aligned/allele_freq_2/B211_fst \
+--out-dir /home/tomsch/WGS_36/aligned/mpileup_files/B211_fst \
 --compress \
 --log-file B211_fst.log \
---threads 10
+--threads 20
 
 
