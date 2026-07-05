@@ -32,8 +32,6 @@
 ###### but now the reads are filtert for -q 40 and -Q 20 from samools mpileup. MeanDepth is now different und has to be calculated from 
 ###### the sync files !!!!!
 
-
-
 /home/tomsch/grenedalf/bin/grenedalf fst \
 --method unbiased-hudson \
 --window-type chromosomes \
@@ -52,6 +50,28 @@
 --compress \
 --log-file /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst/B211_mito_fst.log \
 --threads 20
+
+
+###########################################################################################################################
+## Fst calculation for all samples (with B5047-SCH-54 and B5047-SCH-60) over the whole genome
+/home/tomsch/grenedalf/bin/grenedalf fst 
+--method unbiased-hudson 
+--window-type genome 
+--write-pi-tables 
+--sync-path /home/tomsch/WGS_36/aligned/sync_files 
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna 
+--filter-sample-min-count 2 
+--filter-sample-min-read-depth 86 
+--filter-sample-max-read-depth 344 
+--window-average-policy valid-loci 
+--filter-total-snp-min-frequency 0.01 
+--pool-sizes 60 
+--file-prefix all_samples_fst_calculation_ 
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/all_samples 
+--compress 
+--log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples/all_samples_fst.log 
+--threads 20
+
 
 
 # Cathedral-Fst-Plot with grenedalf
