@@ -26,32 +26,6 @@
 --log-file /home/tomsch/WGS_36/aligned/fst_files/B211_fst/B211_fst.log \
 --threads 20
 
-# just for the mitochondrium 
-# MeanDepth = 24199, Sd = 5010 -> so for Depth filter use mean +- 2*Sd -> 34219 - 14179
-###### ATTENTION!!!!!! MeanDepth was calculated with PanDepth and the raw *rmd.bam. (just the -q from fastp was taken into account), 
-###### but now the reads are filtert for -q 40 and -Q 20 from samools mpileup. MeanDepth is now different und has to be calculated from 
-###### the sync files !!!!!
-
-/home/tomsch/grenedalf/bin/grenedalf fst \
---method unbiased-hudson \
---window-type chromosomes \
---filter-region NC_001566.1:1-16343 \
---write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54.sync \
---reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
---filter-sample-min-count 2 \
---filter-sample-min-read-depth 14179 \
---filter-sample-max-read-depth 34219 \
---window-average-policy valid-loci \
---filter-total-snp-min-frequency 0.01 \
---pool-sizes 30 \
---file-prefix B211_mito_fst_calculation_ \
---out-dir /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst \
---compress \
---log-file /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst/B211_mito_fst.log \
---threads 20
-
-
 ###########################################################################################################################
 ## Fst calculation for all samples (with B5047-SCH-54 and B5047-SCH-60) over the whole genome
 /home/tomsch/grenedalf/bin/grenedalf fst 
@@ -72,7 +46,30 @@
 --log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples/all_samples_fst.log 
 --threads 20
 
+# just for the mitochondrium 
+# MeanDepth = 6836, Sd = 1900 -> so for Depth filter use mean +- 2*Sd -> 10636 - 3036
+###### ATTENTION!!!!!! MeanDepth was calculated with PanDepth and the raw *rmd.bam. (just the -q from fastp was taken into account), 
+###### but now the reads are filtert for -q 40 and -Q 20 from samools mpileup. MeanDepth is now different und has to be calculated from 
+###### the sync files !!!!!
 
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type chromosomes \
+--filter-region NC_001566.1:1-16343 \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 2 \
+--filter-sample-min-read-depth 3036 \
+--filter-sample-max-read-depth 10636 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--pool-sizes 30 \
+--file-prefix mito_fst_all_samples \
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito/mito_fst_all_samples.log \
+--threads 20
 
 # Cathedral-Fst-Plot with grenedalf
 
