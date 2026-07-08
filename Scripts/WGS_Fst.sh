@@ -75,19 +75,21 @@
 
 /home/tomsch/grenedalf/bin/grenedalf fst-cathedral \
 --method unbiased-hudson \
---window-type chromosomes \
---window-region NC_001566.1 \
---write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-44.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-53.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-54.sync \
+--filter-region NC_001566.1:1-16343 \
+--sync-path /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-36.sync /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-43.sync \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --filter-sample-min-count 2 \
---filter-sample-min-read-depth 14179 \
---filter-sample-max-read-depth 34219 \
---window-average-policy valid-loci \
+--filter-sample-min-read-depth 3036 \
+--filter-sample-max-read-depth 10636 \
 --filter-total-snp-min-frequency 0.01 \
 --pool-sizes 30 \
---file-prefix B211_mito_fst_calculation_ \
---out-dir /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst \
---compress \
---log-file /home/tomsch/WGS_36/aligned/fst_files/B211_mito_fst/B211_mito_fst.log \
+--file-prefix 36_43_mito_fst_calculation_ \
+--out-dir /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito/cathedral \
+--log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito/cathedral/36_43_fst_cathedral.log \
 --threads 20
+
+/home/tomsch/grenedalf/bin/grenedalf cathedral-plot \
+--json-path B211_mito_fst_calculation_cathedral-plot-B5047-SCH-53.1.B5047-SCH-54.1-NC_001566.1.json \
+--file-prefix B211_ \
+--threads 20 \
+--log-file B211_cathedral_
