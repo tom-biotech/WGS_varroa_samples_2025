@@ -8,8 +8,8 @@
 
 
 bam_dir="/home/tomsch/WGS_36/aligned"
-mkdir -p "/home/tomsch/WGS_36/unmapped_fastq"
-fastq_dir="/home/tomsch/WGS_36/unmapped_fastq"
+mkdir -p "/home/tomsch/WGS_36/Clean/subsample/"
+fastq_dir="/home/tomsch/WGS_36/Clean/subsample/"
 genome="/home/tomsch/WGS_36/Vdes_3.0/Varroa_destructor_mito.fasta"
 mkdir -p "/home/tomsch/WGS_36/unmapped_bam"
 unmap_dir="/home/tomsch/WGS_36/unmapped_bam"
@@ -29,12 +29,12 @@ done
 samtools faidx $genome
 bwa-mem2 index $genome
 
-for i in "$fastq_dir"/*_1.fastq.gz
-        do dname=$(dirname "${i}"); name=$(basename "${i}" _1.fastq.gz)
+for i in "$fastq_dir"/*_1_sub_30.fastq.gz
+        do dname=$(dirname "${i}"); name=$(basename "${i}" _1_sub_30.fastq.gz)
         echo "name is $name"
    
-        in1=${dname}/${name}_1.fastq.gz
-        in2=${dname}/${name}_2.fastq.gz
+        in1=${dname}/${name}_1_sub_30.fastq.gz
+        in2=${dname}/${name}_2_sub_30.fastq.gz
         bam=$unmap_dir/${name}_aligned.bam
         sorted_bam=$unmap_dir/${name}_aligned_sorted.bam
         rmd_bam=$unmap_dir/${name}_varroa_mapped.bam
