@@ -25,20 +25,17 @@ aligned_dir="/home/tomsch/WGS_36/sub_aligned"
 subsample_one() {
     local i="$1"
     local fastq_clean="$2"
+    local sub_dir="$3"
     local name
     name=$(basename "${i}" _clean_1.fastq.gz)
     echo "name is $name"
-
     local in1="$fastq_clean/${name}_clean_1.fastq.gz"
     local in2="$fastq_clean/${name}_clean_2.fastq.gz"
-
-    seqtk sample -s100 "$in1" 22525088 | gzip -c > "subsample/${name}_1_sub_30.fastq.gz"
-    seqtk sample -s100 "$in2" 22525088 | gzip -c > "subsample/${name}_2_sub_30.fastq.gz"
+    seqtk sample -s100 "$in1" 22525088 | gzip -c > "$sub_dir/${name}_1_sub_30.fastq.gz"
+    seqtk sample -s100 "$in2" 22525088 | gzip -c > "$sub_dir/${name}_2_sub_30.fastq.gz"
 }
-
 export -f subsample_one
-
-parallel -j 10 subsample_one {} "$fastq_clean" ::: "$fastq_clean"/*_clean_1.fastq.gz
+parallel -j 10 subsample_one {} "$fastq_clean" "$sub_dir" ::: "$fastq_clean"/*_clean_1.fastq.gz
 
 for i in "$sub_dir"/*_1_sub_30.fastq.gz
         do dname=$(dirname "${i}"); name=$(basename "${i}" _1_sub_30.fastq.gz)
