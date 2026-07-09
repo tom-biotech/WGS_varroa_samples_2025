@@ -21,7 +21,7 @@ unmap_dir="/home/tomsch/WGS_36/unmapped_bam"
 for i in $bam_dir/*_rmd.bam;
 do name=$(basename ${i} _rmd.bam);
 
-samtools view -f 4 -@ 20 ${i} | samtools fastq -c 3 -1 $fastq_dir/${name}_1.fastq.gz -2 $fastq_dir/${name}_2.fastq.gz -@ 10 -s $fastq_dir/${name}_singletons.fastq.gz 
+samtools fastq -f 4 -@ 10 -c 3 -1 $fastq_dir/${name}_1.fastq.gz -2 $fastq_dir/${name}_2.fastq.gz -s $fastq_dir/${name}_singletons.fastq.gz "${i}"
 
 done
 
