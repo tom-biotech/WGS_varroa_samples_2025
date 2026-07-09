@@ -19,9 +19,9 @@ unmap_dir="/home/tomsch/WGS_36/unmapped_bam"
 # extract unmapped reads with samtools
 
 for i in $bam_dir/*_rmd.bam;
-do name=$(basename $i _rmd.bam);
+do name=$(basename ${i} _rmd.bam);
 
-samtools view -f 4 -@ 20 $i | samtools fastq -c 3 -1 $fastq_dir/${name}_1.fastq.gz -2 $fastq_dir/${name}_2.fastq.gz -@ 10 -s $fastq_dir/${name}_singletons.fastq.gz 
+samtools view -f 4 -@ 20 ${i} | samtools fastq -c 3 -1 $fastq_dir/${name}_1.fastq.gz -2 $fastq_dir/${name}_2.fastq.gz -@ 10 -s $fastq_dir/${name}_singletons.fastq.gz 
 
 done
 
@@ -30,7 +30,7 @@ samtools faidx $genome
 bwa-mem2 index $genome
 
 for i in "$fastq_dir"/*_1.fastq.gz
-        do dname=$(dirname "${i}"); name=$(basename "${i}" _1_sub_30.fastq.gz)
+        do dname=$(dirname "${i}"); name=$(basename "${i}" _1.fastq.gz)
         echo "name is $name"
    
         in1=${dname}/${name}_1.fastq.gz
@@ -73,11 +73,12 @@ mkdir "$unmap_dir"/bam_qc
 bam_qc_dir="/home/tomsch/WGS_36/unmapped_bam/bam_qc"
 
 ## alfred
-parallel -j 20 '
+export genome bam_qc_dir
+parallel -j 10 '
 name=$(basename {} _varroa_mapped.bam)
 alfred qc \
   -r "$genome" \
   -j "$bam_qc_dir"/${name}_qc.json.gz \
   -o "$bam_qc_dir"/${name}_qc.tsv.gz \
   {}
-' ::: "$unmap_dir"*_varroa_mapped.bam
+' ::: "$unmap_dir"/*_varroa_mapped.bam
