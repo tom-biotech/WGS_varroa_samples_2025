@@ -29,12 +29,12 @@ done
 samtools faidx $genome
 bwa-mem2 index $genome
 
-for i in "$fastq_dir"/*_1_sub_30.fastq.gz
+for i in "$fastq_dir"/*_1.fastq.gz
         do dname=$(dirname "${i}"); name=$(basename "${i}" _1_sub_30.fastq.gz)
         echo "name is $name"
    
-        in1=${dname}/${name}_1_sub_30.fastq.gz
-        in2=${dname}/${name}_2_sub_30.fastq.gz
+        in1=${dname}/${name}_1.fastq.gz
+        in2=${dname}/${name}_2.fastq.gz
         bam=$unmap_dir/${name}_aligned.bam
         sorted_bam=$unmap_dir/${name}_aligned_sorted.bam
         rmd_bam=$unmap_dir/${name}_varroa_mapped.bam
@@ -63,9 +63,9 @@ done
 
 ## statistics for read depth and general bam QC
 ## Pandepth
-for i in "$unmap_dir"/*.bam; 
+for i in "$unmap_dir"/*_varroa_mapped.bam; 
 do 
-name=$(basename ${i} _rmd.bam);
+name=$(basename ${i} _varroa_mapped.bam);
 pandepth -i $i -o "$unmap_dir"/${name}_depth -t 20; 
 done
 
