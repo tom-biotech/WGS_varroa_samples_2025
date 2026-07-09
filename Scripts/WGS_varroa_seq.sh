@@ -8,8 +8,8 @@
 
 
 bam_dir="/home/tomsch/WGS_36/aligned"
-mkdir -p "/home/tomsch/WGS_36/Clean/subsample/"
-fastq_dir="/home/tomsch/WGS_36/Clean/subsample/"
+mkdir -p "/home/tomsch/WGS_36/Clean/unmapped/"
+fastq_dir="/home/tomsch/WGS_36/Clean/unmapped/"
 genome="/home/tomsch/WGS_36/Vdes_3.0/Varroa_destructor_mito.fasta"
 mkdir -p "/home/tomsch/WGS_36/unmapped_bam"
 unmap_dir="/home/tomsch/WGS_36/unmapped_bam"
