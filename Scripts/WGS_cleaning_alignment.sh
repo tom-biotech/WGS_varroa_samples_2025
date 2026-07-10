@@ -1,5 +1,6 @@
-
 #!/bin/bash
+
+set -euo pipefail
 
 ############# VARROARESISTENZ WGS 2026 ################ 
 #### using bbmap 39.85
@@ -76,10 +77,11 @@ bam_qc_dir="/home/tomsch/WGS_36/aligned_new/bam_qc"
 
 ## alfred
 parallel -j 20 '
-name=$(basename {} _rmd.bam)
-alfred qc \
-  -r "$genome" \
-  -j "$bam_qc_dir"/${name}_qc.json.gz \
-  -o "$bam_qc_dir"/${name}_qc.tsv.gz \
-  {}
-' ::: "$aligned_dir"*_rmd.bam
+  bam={}
+  name=$(basename "$bam" _rmd.bam)
+  alfred qc \
+    -r {2} \
+    -j {3}/${name}_qc.json.gz \
+    -o {3}/${name}_qc.tsv.gz \
+    "$bam"
+' ::: "$aligned_dir"/*_rmd.bam ::: "$genome" ::: "$bam_qc_dir"
