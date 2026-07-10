@@ -23,7 +23,7 @@ aligned_dir="/home/tomsch/WGS_36/aligned_new"
 for i in "$fastq_raw"/*_R1_001.fastq.gz; \
         do dname=$(dirname ${i}); name=$(basename ${i} _R1_001.fastq.gz); \
         fastp -i ${dname}/${name}_R1_001.fastq.gz -I ${dname}/${name}_R2_001.fastq.gz -o $fastq_clean/${name}_clean_1.fastq.gz -O $fastq_clean/${name}_clean_2.fastq.gz \
-		-h $fastq_clean/${name}_stats.html -j $fastq_clean/${name}_stats.json -w 20 --dont_overwrite --detect_adapter_for_pe -q 20 -l 30 --correction ;
+		-h $fastq_clean/${name}_stats.html -j $fastq_clean/${name}_stats.json -w 10 --detect_adapter_for_pe -q 20 -l 30 --correction ;
 done
 
 ## call the genome (using the curated GCF version), to download here: https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_003254395.2/
