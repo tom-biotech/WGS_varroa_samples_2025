@@ -113,3 +113,24 @@ java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
 done
 
+
+#####
+# Fst calculation
+
+/home/tomsch/grenedalf/bin/grenedalf fst 
+--method unbiased-hudson 
+--window-type genome 
+--write-pi-tables 
+--sync-path /home/tomsch/WGS_36/sub_aligned/sync_files 
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna 
+--filter-sample-min-count 2 
+--filter-sample-min-read-depth 86 
+--filter-sample-max-read-depth 344 
+--window-average-policy valid-loci 
+--filter-total-snp-min-frequency 0.01 
+--pool-sizes 60 
+--file-prefix all_samples_fst_calculation_ 
+--out-dir /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples 
+--compress 
+--log-file /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples/all_samples_fst.log 
+--threads 20
