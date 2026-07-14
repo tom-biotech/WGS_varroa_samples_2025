@@ -143,7 +143,7 @@ END {
 
 mkdir -p stats_per_sample
 
-ls /home/tomsch/WGS_36/sync/*.sync | parallel -j 8 \
+ls /home/tomsch/WGS_36/sync/*.sync | parallel -j 10 \
     'sample=$(basename {} .sync); awk -f depth_stats_per_sample.awk {} > stats_per_sample/${sample}.stats'
 
 echo -e "sample\tchrom\tn_positions\tmean_depth\tsd_depth" > depth_stats_final.tsv
