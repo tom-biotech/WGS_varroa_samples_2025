@@ -21,7 +21,7 @@ mkdir -p "/home/tomsch/WGS_36/sub_aligned"
 aligned_dir="/home/tomsch/WGS_36/sub_aligned"
 
 # Subsample to a depth of 30x (genome: 225250884, depth 30x -> 225250884 * 30 ‎ = 6.757.526.520  -> 6757526520/150 (read length) ‎ = 45.050.176,8 -> 45050176,8 /2 (paired)‎ = 22.525.088,4)
-'''
+
 subsample_one() {
     local i="$1"
     local fastq_clean="$2"
@@ -36,7 +36,7 @@ subsample_one() {
 }
 export -f subsample_one
 parallel -j 10 subsample_one {} "$fastq_clean" "$sub_dir" ::: "$fastq_clean"/*_clean_1.fastq.gz
-'''
+
 for i in "$sub_dir"/*_1_sub_30.fastq.gz
         do dname=$(dirname "${i}"); name=$(basename "${i}" _1_sub_30.fastq.gz)
         echo "name is $name"
