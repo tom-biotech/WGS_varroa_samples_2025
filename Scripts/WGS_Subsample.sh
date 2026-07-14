@@ -81,6 +81,9 @@ mkdir "$aligned_dir"/bam_qc
 bam_qc_dir="/home/tomsch/WGS_36/sub_aligned/bam_qc"
 
 ## alfred
+export genome="$genome"
+export bam_qc_dir="$bam_qc_dir"
+
 parallel -j 20 '
 name=$(basename {} _rmd_sub_30.bam)
 alfred qc \
@@ -88,4 +91,4 @@ alfred qc \
   -j "$bam_qc_dir"/${name}_qc.json.gz \
   -o "$bam_qc_dir"/${name}_qc.tsv.gz \
   {}
-' ::: "$aligned_dir"*_rmd_sub_30.bam ::: "$genome" ::: "$bam_qc_dir"
+' ::: "$aligned_dir"*_rmd_sub_30.bam
