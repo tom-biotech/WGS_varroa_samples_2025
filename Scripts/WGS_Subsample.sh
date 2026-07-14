@@ -88,4 +88,4 @@ alfred qc \
   -j "$bam_qc_dir"/${name}_qc.json.gz \
   -o "$bam_qc_dir"/${name}_qc.tsv.gz \
   {}
-' ::: "$aligned_dir"*_rmd_sub_30.bam
+' ::: "$aligned_dir"*_rmd_sub_30.bam ::: "$genome" ::: "$bam_qc_dir"
