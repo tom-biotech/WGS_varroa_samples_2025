@@ -113,7 +113,49 @@ java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
 done
 
+#####
+# Depth in sync files
 
+depth_stats_per_sample.awk
+----------
+BEGIN{OFS="\t"}
+{
+    chrom = $1
+    n = split($4, counts, ":")
+    depth = 0
+    for (i = 1; i <= n; i++) depth += counts[i]
+
+    count[chrom]++
+    delta = depth - mean[chrom]
+    mean[chrom] += delta / count[chrom]
+    delta2 = depth - mean[chrom]
+    M2[chrom] += delta * delta2
+}
+END {
+    for (chrom in count) {
+        n = count[chrom]
+        variance = (n > 1) ? M2[chrom] / (n - 1) : 0
+        sd = sqrt(variance)
+        printf "%s\t%d\t%.4f\t%.4f\n", chrom, n, mean[chrom], sd
+    }
+}
+----------
+
+mkdir -p stats_per_sample
+
+ls /home/tomsch/WGS_36/sync/*.sync | parallel -j 8 \
+    'sample=$(basename {} .sync); awk -f depth_stats_per_sample.awk {} > stats_per_sample/${sample}.stats'
+
+echo -e "sample\tchrom\tn_positions\tmean_depth\tsd_depth" > depth_stats_final.tsv
+
+for f in stats_per_sample/*.stats; do
+    sample=$(basename "$f" .stats)
+    awk -v s="$sample" 'BEGIN{OFS="\t"} {print s, $0}' "$f"
+done >> depth_stats_final.tsv
+
+awk 'NR==FNR{order[$1]=NR; next} FNR>1{print $0, order[$2]}' chromosomes.txt depth_stats_final.tsv \
+    | sort -k6,6n \
+    | cut -d' ' -f1-5 > depth_stats_final_sorted.tsv
 #####
 # Fst calculation
 
