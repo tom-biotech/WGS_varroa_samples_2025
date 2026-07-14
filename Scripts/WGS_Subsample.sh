@@ -92,3 +92,24 @@ alfred qc \
   -o "$bam_qc_dir"/${name}_qc.tsv.gz \
   {}
 ' ::: "$aligned_dir"*_rmd_sub_30.bam
+
+############################
+# convert bam to pileup file
+############################
+
+mkdir -p "/home/tomsch/WGS_36/sub_aligned/mpileup_files"
+mkdir -p "/home/tomsch/WGS_36/sub_aligned/sync_files"
+mpileup_dir="/home/tomsch/WGS_36/sub_aligned/mpileup_files"
+sync_dir="/home/tomsch/WGS_36/sub_aligned/sync_files"
+
+# from samtools mpileup to sync file
+for i in "$aligned_dir"/B5047-SCH-{36..60}_rmd.bam; do name=$(basename ${i} _rmd_sub_30.bam);
+cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 20 \
+"samtools mpileup -B -f $genome \
+-q 40 -Q 20 -aa -r {} ${i} > "$mpileup_dir"/${name}_{}.mpileup"
+while read c; do cat "$mpileup_dir"/${name}_${c}.mpileup; done < /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt > "$mpileup_dir"/${name}.mpileup
+rm "$mpileup_dir"/${name}_N*
+java -ea -Xmx10g -jar \
+/home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
+done
+
