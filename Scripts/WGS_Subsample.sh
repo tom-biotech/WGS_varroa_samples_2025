@@ -158,6 +158,7 @@ awk 'NR==FNR{order[$1]=NR; next} FNR>1{print $0, order[$2]}' chromosomes.txt dep
     | cut -d' ' -f1-5 > depth_stats_final_sorted.tsv
 #####
 # Fst calculation
+# Mean Depth: 
 
 /home/tomsch/grenedalf/bin/grenedalf fst 
 --method unbiased-hudson 
