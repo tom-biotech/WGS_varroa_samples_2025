@@ -140,7 +140,7 @@ END {
     }
 }
 ----------
-
+# Depth stats per sample and chromosom
 mkdir -p stats_per_sample
 
 ls /home/tomsch/WGS_36/sub_aligned/sync_files/*.sync | parallel -j 10 \
@@ -151,14 +151,45 @@ echo -e "sample\tchrom\tn_positions\tmean_depth\tsd_depth" > depth_stats_final.t
 for f in stats_per_sample/*.stats; do
     sample=$(basename "$f" .stats)
     awk -v s="$sample" 'BEGIN{OFS="\t"} {print s, $0}' "$f"
-done >> depth_stats_final.tsv
+done >> stats_per_sample/depth_stats_final.tsv
 
-awk 'NR==FNR{order[$1]=NR; next} FNR>1{print $0, order[$2]}' chromosomes.txt depth_stats_final.tsv \
+awk 'NR==FNR{order[$1]=NR; next} FNR>1{print $0, order[$2]}' /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt depth_stats_final.tsv \
     | sort -k6,6n \
     | cut -d' ' -f1-5 > depth_stats_final_sorted.tsv
+
+# Mean depth per sample
+mean_depth_per_sample.awk:
+-------------
+{
+    n = split($4, counts, ":")
+    depth = 0
+    for (i = 1; i <= n; i++) depth += counts[i]
+
+    count++
+    delta = depth - mean
+    mean += delta / count
+    delta2 = depth - mean
+    M2 += delta * delta2
+
+    if (depth > 0) covered++
+}
+END {
+    variance = (count > 1) ? M2 / (count - 1) : 0
+    sd = sqrt(variance)
+    breadth = (covered / count) * 100
+    printf "%d\t%.4f\t%.4f\t%d\t%.4f\n", count, mean, sd, covered, breadth
+}
+-------------
+
+ls /home/tomsch/WGS_36/sub_aligned/sync_files/*.sync | parallel -j 10 \
+    'sample=$(basename {} .sync); echo -e "$sample\t$(awk -f mean_depth_per_sample.awk {})"' \
+    > stats_per_sample/mean_depth_stats_per_sample.tsv
+	
+awk '{ total += $3 } END { print total/NR }' mean_depth_stats_per_sample.tsv
+
 #####
 # Fst calculation
-# Mean Depth: 
+# Mean Depth: 24.1
 
 /home/tomsch/grenedalf/bin/grenedalf fst 
 --method unbiased-hudson 
@@ -167,12 +198,12 @@ awk 'NR==FNR{order[$1]=NR; next} FNR>1{print $0, order[$2]}' chromosomes.txt dep
 --sync-path /home/tomsch/WGS_36/sub_aligned/sync_files 
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna 
 --filter-sample-min-count 2 
---filter-sample-min-read-depth 86 
---filter-sample-max-read-depth 344 
+--filter-sample-min-read-depth 12 
+--filter-sample-max-read-depth 48 
 --window-average-policy valid-loci 
 --filter-total-snp-min-frequency 0.01 
 --pool-sizes 60 
---file-prefix all_samples_fst_calculation_ 
+--file-prefix all_sub_30_samples_fst_calculation_ 
 --out-dir /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples 
 --compress 
 --log-file /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples/all_samples_fst.log 
