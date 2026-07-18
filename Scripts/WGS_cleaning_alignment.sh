@@ -80,7 +80,7 @@ export genome="$genome"
 export bam_qc_dir="$bam_qc_dir"
 
 parallel -j 20 '
-name=$(basename {} _rmd_sub_30.bam)
+name=$(basename {} _rmd.bam)
 alfred qc \
   -r "$genome" \
   -j "$bam_qc_dir"/${name}_qc.json.gz \
