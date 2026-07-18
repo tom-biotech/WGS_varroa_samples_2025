@@ -80,6 +80,24 @@ done
 mkdir "$aligned_dir"/bam_qc
 bam_qc_dir="/home/tomsch/WGS_36/sub_aligned/bam_qc"
 
+'''
+echo -e "Sample\tCoverage\tMeanDepth" > summary.tsv
+
+for f in B5047-SCH-*.chr.stat.gz
+do
+    sample=$(basename "$f" .chr.stat.gz)
+    zgrep '^##' "$f" | tail -n1 | \
+    awk -v sample="$sample" '
+    {
+        for(i=1;i<=NF;i++){
+            if($i ~ /^Coverage/) cov=$(i+1)
+            if($i ~ /^MeanDepth/) md=$(i+1)
+        }
+        print sample "\t" cov "\t" md
+    }' >> pan_depth_summary.tsv
+done
+'''
+
 ## alfred
 export genome="$genome"
 export bam_qc_dir="$bam_qc_dir"
@@ -112,7 +130,7 @@ rm "$mpileup_dir"/${name}_N*
 java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
 done
-
+'''
 #####
 # Depth in sync files
 
@@ -186,25 +204,25 @@ ls /home/tomsch/WGS_36/sub_aligned/sync_files/*.sync | parallel -j 10 \
     > stats_per_sample/mean_depth_stats_per_sample.tsv
 	
 awk '{ total += $3 } END { print total/NR }' mean_depth_stats_per_sample.tsv
-
+'''
 #####
 # Fst calculation
 # Mean Depth: 24.1
 
-/home/tomsch/grenedalf/bin/grenedalf fst 
---method unbiased-hudson 
---window-type genome 
---write-pi-tables 
---sync-path /home/tomsch/WGS_36/sub_aligned/sync_files 
---reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna 
---filter-sample-min-count 2 
---filter-sample-min-read-depth 12 
---filter-sample-max-read-depth 48 
---window-average-policy valid-loci 
---filter-total-snp-min-frequency 0.01 
---pool-sizes 60 
---file-prefix all_sub_30_samples_fst_calculation_ 
---out-dir /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples 
---compress 
---log-file /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples/all_samples_fst.log 
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type genome \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/sub_aligned/sync_files \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 2 \
+--filter-sample-min-read-depth 12 \
+--filter-sample-max-read-depth 48 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--pool-sizes 60 \
+--file-prefix all_sub_30_samples_fst_calculation_ \
+--out-dir /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples \
+--compress \
+--log-file /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples/all_samples_fst.log \
 --threads 20
