@@ -31,7 +31,7 @@
 ###### ATTENTION!!!!!! MeanDepth was calculated with PanDepth and the raw *rmd.bam. (just the -q from fastp was taken into account), 
 ###### but now the reads are filtert for -q 40 and -Q 20 from samools mpileup. MeanDepth is now different und has to be calculated from 
 ###### the sync files !!!!!
-###### --> Man Depth over all samples and Chr = 171.6x = 172x
+###### --> Mean Depth over all samples and Chr = 171.6x = 172x
 
 /home/tomsch/grenedalf/bin/grenedalf fst 
 --method unbiased-hudson 
