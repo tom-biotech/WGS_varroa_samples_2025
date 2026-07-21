@@ -226,3 +226,7 @@ awk '{ total += $3 } END { print total/NR }' mean_depth_stats_per_sample.tsv
 --compress \
 --log-file /home/tomsch/WGS_36/sub_aligned/fst_files/all_samples/all_samples_fst.log \
 --threads 20
+
+# calculating allele frequency differences
+
+perl /home/tomsch/snp-frequency-diff.pl --input p1_p2.sync --output-prefix p1_p2 --min-count 6 --min-coverage 50 --max-coverage 200
