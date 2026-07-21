@@ -19,8 +19,8 @@ sync_dir="/home/tomsch/WGS_36/aligned_new/sync_files"
         --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
         --sam-path ${i} \
         --make-gapless \
-        --sam-min-map-qual 60 \
-        --sam-min-base-qual 30 \
+        --sam-min-map-qual 40 \
+        --sam-min-base-qual 20 \
         --compress \
         --log-file /home/tomsch/WGS_36/aligned/sync_files/${name}_sync.log \
         --threads 5 \
