@@ -121,7 +121,7 @@ mpileup_dir="/home/tomsch/WGS_36/sub_aligned/mpileup_files"
 sync_dir="/home/tomsch/WGS_36/sub_aligned/sync_files"
 
 # from samtools mpileup to sync file
-for i in "$aligned_dir"/B5047-SCH-{36..60}_rmd.bam; do name=$(basename ${i} _rmd_sub_30.bam);
+for i in "$aligned_dir"/B5047-SCH-{25..60}_rmd.bam; do name=$(basename ${i} _rmd_sub_30.bam);
 cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 20 \
 "samtools mpileup -B -f $genome \
 -q 40 -Q 20 -aa -r {} ${i} > "$mpileup_dir"/${name}_{}.mpileup"
