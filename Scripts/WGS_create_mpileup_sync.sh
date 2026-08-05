@@ -41,4 +41,35 @@ java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
 done
 
+# create depth file from sync (same as samtools depth)
+# sync_to_depth.sh
 
+#!/bin/bash
+SYNC_DIR="/home/tomsch/WGS_36/aligned_new/sync_files"
+OUTDIR="/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
+mkdir -p "$OUTDIR"
+
+export OUTDIR
+
+process_one() {
+    local sync_file="$1"
+    local sample
+    sample=$(basename "$sync_file" .sync)
+    local outfile="${OUTDIR}/${sample}_depth.txt"
+
+    {
+      echo -e "#CHROM\tPOS\t${sample}"
+      gawk 'BEGIN{FS="\t"} {
+          split($4, cnt, ":")
+          depth = cnt[1]+cnt[2]+cnt[3]+cnt[4]+cnt[5]+cnt[6]
+          print $1"\t"$2"\t"depth
+      }' "$sync_file"
+    } > "$outfile"
+}
+export -f process_one
+
+parallel -j 5 process_one ::: "$SYNC_DIR"/*.sync
+
+# delete Mitochondria from depth file (because it have a way higher depth than the normal chromosomes)
+
+for i in *_depth.txt; do name=$(basename "$i" _depth.txt); awk '$1 != "NC_001566.1"' $i | gzip > ${name}_depth_without_mito.txt.gz; echo "Probe ${name} bearbeitet..."; done
