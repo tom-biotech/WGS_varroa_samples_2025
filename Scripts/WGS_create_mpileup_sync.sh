@@ -73,3 +73,94 @@ parallel -j 5 process_one ::: "$SYNC_DIR"/*.sync
 # delete Mitochondria from depth file (because it have a way higher depth than the normal chromosomes)
 
 for i in *_depth.txt; do name=$(basename "$i" _depth.txt); awk '$1 != "NC_001566.1"' $i | gzip > ${name}_depth_without_mito.txt.gz; echo "Probe ${name} bearbeitet..."; done
+
+# from there on with an R-Script calculate elbow depth
+
+library(data.table)
+library(ggplot2)
+library(scales)
+
+setDTthreads(20)
+
+# --- Konfiguration ---
+depth_dir   <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
+out_dir     <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync/density"
+dir.create(out_dir, showWarnings = FALSE)
+
+depth_files <- list.files(depth_dir, pattern = "_depth_without_mito\\.txt\\.gz$", full.names = TRUE)
+sample_names <- sub("_depth_without_mito\\.txt\\.gz$", "", basename(depth_files))
+
+cat("Gefundene Samples:", length(depth_files), "\n")
+
+# --- Funktion: Ellbogen via Kneedle auf einer density()-Schätzung ---
+find_elbow <- function(d) {
+  peak_idx <- which.max(d$y)
+  x_desc <- d$x[peak_idx:length(d$x)]
+  y_desc <- d$y[peak_idx:length(d$x)]
+
+  x_norm <- (x_desc - min(x_desc)) / (max(x_desc) - min(x_desc))
+  y_norm <- (y_desc - min(y_desc)) / (max(y_desc) - min(y_desc))
+
+  line_y <- y_norm[1] + (y_norm[length(y_norm)] - y_norm[1]) *
+            (x_norm - x_norm[1]) / (x_norm[length(x_norm)] - x_norm[1])
+  dist_to_line <- line_y - y_norm
+
+  x_desc[which.max(dist_to_line)]
+}
+
+# --- Container für Ergebnisse ---
+density_list <- vector("list", length(depth_files))
+stats_list   <- vector("list", length(depth_files))
+
+# --- Hauptschleife: ein Sample nach dem anderen ---
+for (i in seq_along(depth_files)) {
+
+  f <- depth_files[i]
+  s <- sample_names[i]
+  cat(sprintf("[%d/%d] Verarbeite %s ...\n", i, length(depth_files), s))
+
+  # Nur die Depth-Spalte extrahieren (awk $3) -> deutlich weniger RAM als 3 Spalten
+  depth_vec <- fread(
+    cmd = paste0("zcat ", f, " | grep -v '^#' | awk '{print $3}'"),
+    header = FALSE
+  )[[1]]
+  depth_vec <- as.numeric(depth_vec)
+  depth_vec <- depth_vec[!is.na(depth_vec)]
+
+  # Kennzahlen
+  mean_d   <- mean(depth_vec)
+  median_d <- median(depth_vec)
+  q95      <- quantile(depth_vec, 0.95, names = FALSE)
+  q99      <- quantile(depth_vec, 0.99, names = FALSE)
+  upper_cut <- quantile(depth_vec, 0.999, names = FALSE)
+
+  # Density nur bis 99.9%-Quantil schätzen (Tail sonst verzerrend)
+  d <- density(depth_vec, from = 0, to = upper_cut, n = 4096)
+
+  modus_d <- d$x[which.max(d$y)]
+  elbow_d <- find_elbow(d)
+
+  stats_list[[i]] <- data.table(
+    sample      = s,
+    elbow_depth = elbow_d,
+    q95         = q95,
+    q99         = q99,
+    mean        = mean_d,
+    median      = median_d,
+    modus       = modus_d
+  )
+
+  density_list[[i]] <- data.table(sample = s, x = d$x, y = d$y)
+
+  # Rohdaten sofort verwerfen
+  rm(depth_vec, d)
+  gc(verbose = FALSE)
+}
+
+# --- Zusammenführen ---
+stats_dt   <- rbindlist(stats_list)
+density_dt <- rbindlist(density_list)
+
+fwrite(stats_dt, file.path(out_dir, "depth_summary_stats.csv"))
+
+print(stats_dt)
