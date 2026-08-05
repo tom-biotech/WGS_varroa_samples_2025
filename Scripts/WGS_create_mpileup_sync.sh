@@ -217,8 +217,8 @@ p <- ggplot(all_dens, aes(x = x, y = y, color = sample)) +
   geom_vline(xintercept = 20, color = "red", linetype = "dashed", linewidth = 0.8) +
   scale_x_continuous(
     trans = pseudo_log_trans(sigma = 1, base = 10),
-    breaks = c(5, 10, 20, 50, 100, 200, 300, 400, 1000),
-    labels = c(5, 10, 20, 50, 100, 200, 300, 400, 1000)
+    breaks = c(0, 1, 2, 3, 4, 5, 10, 20, 50, 100, 200, 300, 400, 1000),
+    labels = c(0, 1, 2, 3, 4, 5, 10, 20, 50, 100, 200, 300, 400, 1000)
   ) +
   coord_cartesian(xlim = c(0, 1000)) +
   labs(
