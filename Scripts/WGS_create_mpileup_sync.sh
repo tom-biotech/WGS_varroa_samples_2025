@@ -164,3 +164,75 @@ density_dt <- rbindlist(density_list)
 fwrite(stats_dt, file.path(out_dir, "depth_summary_stats.csv"))
 
 print(stats_dt)
+
+# create density plot of all samples
+
+library(data.table)
+library(ggplot2)
+library(scales)
+
+base_dir   <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
+out_dir    <- file.path(base_dir, "density")
+dir.create(out_dir, showWarnings = FALSE)
+
+sample_numbers <- 25:60
+density_list   <- vector("list", length(sample_numbers))
+
+for (i in seq_along(sample_numbers)) {
+
+  n <- sample_numbers[i]
+  sample_id  <- paste0("B5047-SCH-", n)
+  depth_file <- file.path(base_dir, paste0(sample_id, "_depth_without_mito.txt.gz"))
+
+  if (!file.exists(depth_file)) {
+    message("Datei fehlt, überspringe: ", depth_file)
+    next
+  }
+
+  message("Verarbeite ", sample_id, " ...")
+
+  depth_dt <- fread(cmd = paste0("zcat ", depth_file, " | grep -v '^#'"),
+                     header = FALSE, col.names = c("chrom", "pos", "depth"))
+  depth_dt[, depth := as.numeric(depth)]
+
+  # Dichte berechnen (kompakte Repräsentation, n=4096 Stützstellen)
+  dens <- density(depth_dt$depth, n = 4096, from = 0, na.rm = TRUE)
+
+  density_list[[i]] <- data.table(
+    sample = sample_id,
+    x = dens$x,
+    y = dens$y
+  )
+
+  # Rohdaten sofort freigeben, bevor die nächste Probe geladen wird
+  rm(depth_dt, dens)
+  gc()
+}
+
+# Alle Dichtekurven zusammenführen (leichtgewichtig: 36 x 4096 Zeilen statt Milliarden)
+all_dens <- rbindlist(density_list, use.names = TRUE)
+
+p <- ggplot(all_dens, aes(x = x, y = y, color = sample)) +
+  geom_line(linewidth = 0.6, alpha = 0.8) +
+  geom_vline(xintercept = 20, color = "red", linetype = "dashed", linewidth = 0.8) +
+  scale_x_continuous(
+    trans = pseudo_log_trans(sigma = 1, base = 10),
+    breaks = c(5, 10, 20, 50, 100, 200, 300, 400, 1000),
+    labels = c(5, 10, 20, 50, 100, 200, 300, 400, 1000)
+  ) +
+  coord_cartesian(xlim = c(0, 1000)) +
+  labs(
+    title = "Coverage Depth Distribution - alle Proben",
+    x = "Depth (log1p scale)",
+    y = "Density",
+    color = "Probe"
+  ) +
+  theme_minimal() +
+  theme(legend.key.size = unit(0.3, "cm"))
+
+ggsave(
+  filename = file.path(out_dir, "all_samples_depth_density_log.png"),
+  plot = p, width = 10, height = 6, dpi = 300
+)
+
+message("Fertig – kombinierter Plot liegt in: ", out_dir)
