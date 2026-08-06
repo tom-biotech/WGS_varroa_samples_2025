@@ -170,6 +170,8 @@ print(stats_dt)
 library(data.table)
 library(ggplot2)
 library(scales)
+library(plotly)
+library(htmlwidgets)
 
 base_dir   <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
 out_dir    <- file.path(base_dir, "density")
@@ -212,7 +214,19 @@ for (i in seq_along(sample_numbers)) {
 # Alle Dichtekurven zusammenführen (leichtgewichtig: 36 x 4096 Zeilen statt Milliarden)
 all_dens <- rbindlist(density_list, use.names = TRUE)
 
-p <- ggplot(all_dens, aes(x = x, y = y, color = sample)) +
+p <- ggplot(
+  all_dens,
+  aes(
+    x = x,
+    y = y,
+    color = sample,
+    text = paste0(
+      "Probe: ", sample,
+      "<br>Depth: ", round(x, 1),
+      "<br>Density: ", signif(y, 4)
+    )
+  )
+) +
   geom_line(linewidth = 0.6, alpha = 0.8) +
   geom_vline(xintercept = 20, color = "red", linetype = "dashed", linewidth = 0.8) +
   scale_x_continuous(
@@ -229,6 +243,14 @@ p <- ggplot(all_dens, aes(x = x, y = y, color = sample)) +
   ) +
   theme_minimal() +
   theme(legend.key.size = unit(0.3, "cm"))
+
+p_html <- ggplotly(p, tooltip = "text")
+
+saveWidget(
+  p_html,
+  file = file.path(out_dir, "all_samples_depth_density_log.html"),
+  selfcontained = TRUE
+)
 
 ggsave(
   filename = file.path(out_dir, "all_samples_depth_density_log.png"),
