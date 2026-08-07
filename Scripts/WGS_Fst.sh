@@ -206,3 +206,30 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --file-prefix B211_ \
 --threads 20 \
 --log-file B211_cathedral_
+
+
+##########################################################################################################################################################################
+# Comparison of the four samples with the biggest SMR difference -> two samples with the highest SMR Value (B5047-SCH-44 (B214(TGW)24), B5047-SCH-45 (B234(SKP)25)) 
+# and two with the lowest (B5047-SCH-28 (B664(DSU)25), B5047-SCH-52 (B686(OS)25)) 
+# using masked sync files with a depth between 20 and individual elbow depth
+
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type single \
+--window-average-policy valid-loci \
+--comparand-list /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/first_single_fst_sample.list \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/B5047-SCH-44_masked.sync \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/B5047-SCH-45_masked.sync \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/B5047-SCH-28_masked.sync \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/B5047-SCH-52_masked.sync \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 3 \
+--filter-total-snp-min-frequency 0.01 \
+--filter-total-only-biallelic-snps \
+--pool-sizes 60 \
+--file-prefix 44_45_vs_28_52_fst_calculation_ \
+--out-dir /home/tomsch/WGS_36/aligned_new/fst_files/all_samples/SNP_Fst \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples/SNP_Fst/44_45_vs_28_52_fst.log \
+--threads 20
