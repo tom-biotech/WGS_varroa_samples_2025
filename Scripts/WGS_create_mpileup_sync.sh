@@ -126,6 +126,7 @@ for (i in seq_along(depth_files)) {
   )[[1]]
   depth_vec <- as.numeric(depth_vec)
   depth_vec <- depth_vec[!is.na(depth_vec)]
+  depth_vec <- depth_vec[depth_vec > 0]
 
   # Kennzahlen
   mean_d   <- mean(depth_vec)
@@ -165,6 +166,8 @@ fwrite(stats_dt, file.path(out_dir, "depth_summary_stats.csv"))
 
 print(stats_dt)
 
+
+################################
 # create density plot of all samples
 
 library(data.table)
@@ -193,12 +196,17 @@ for (i in seq_along(sample_numbers)) {
 
   message("Verarbeite ", sample_id, " ...")
 
-  depth_dt <- fread(cmd = paste0("zcat ", depth_file, " | grep -v '^#'"),
-                     header = FALSE, col.names = c("chrom", "pos", "depth"))
-  depth_dt[, depth := as.numeric(depth)]
+  depth_dt <- fread(cmd = paste0("zcat ", depth_file, " | grep -v '^#' | awk '{print $3}'"),
+                   header = FALSE)$V1          # <- extract the column, not the whole data.table
 
+  depth_dt <- as.numeric(depth_dt)
+  depth_dt <- depth_dt[!is.na(depth_dt)]
+  depth_dt <- depth_dt[depth_dt > 0]
+
+  upper_cut <- quantile(depth_dt, 0.999)
+  
   # Dichte berechnen (kompakte Repräsentation, n=4096 Stützstellen)
-  dens <- density(depth_dt$depth, n = 4096, from = 0, na.rm = TRUE)
+  dens <- density(depth_dt, n = 4096, from = 0, to = upper_cut, na.rm = TRUE)
 
   density_list[[i]] <- data.table(
     sample = sample_id,
@@ -207,7 +215,7 @@ for (i in seq_along(sample_numbers)) {
   )
 
   # Rohdaten sofort freigeben, bevor die nächste Probe geladen wird
-  rm(depth_dt, dens)
+  rm(depth_dt, dens, upper_cut)
   gc()
 }
 
@@ -230,14 +238,14 @@ p <- ggplot(
   geom_line(linewidth = 0.6, alpha = 0.8) +
   geom_vline(xintercept = 20, color = "red", linetype = "dashed", linewidth = 0.8) +
   scale_x_continuous(
-    trans = pseudo_log_trans(sigma = 1, base = 10),
-    breaks = c(0, 1, 2, 3, 4, 5, 10, 20, 50, 100, 200, 300, 400, 1000),
-    labels = c(0, 1, 2, 3, 4, 5, 10, 20, 50, 100, 200, 300, 400, 1000)
+    #trans = pseudo_log_trans(sigma = 1, base = 10),
+    breaks = c(0, 20, 100, 200, 300, 400, 500, 600),
+    labels = c(0, 20, 100, 200, 300, 400, 500, 600)
   ) +
-  coord_cartesian(xlim = c(0, 1000)) +
+  coord_cartesian(xlim = c(0, 600)) +
   labs(
-    title = "Coverage Depth Distribution - alle Proben",
-    x = "Depth (log1p scale)",
+    title = "Coverage Depth Distribution - all samples",
+    x = "Depth",
     y = "Density",
     color = "Probe"
   ) +
@@ -258,3 +266,107 @@ ggsave(
 )
 
 message("Fertig – kombinierter Plot liegt in: ", out_dir)
+
+
+################################################
+# mask_sync_by_elbow.sh
+# mask sync files on the basis of min depth of 20 and max depth of elbow value for every sample
+
+#!/bin/bash
+#
+# mask_sync_by_elbow.sh
+#
+# Maskiert Positionen in den Pro-Sample-sync-Dateien, deren Depth
+# NICHT im Bereich [min_depth, elbow_depth(sample)] liegt.
+# Maskierte Positionen bekommen "0:0:0:0:0:0" im Zählfeld.
+#
+# Usage:
+#   ./mask_sync_by_elbow.sh <depth_summary.csv> <sync_dir> <out_dir> [min_depth]
+#
+# depth_summary.csv  = deine R-Ausgabe mit Spalten "sample" und "elbow_depth"
+#                       (Spaltenreihenfolge egal, muss aber diese Header haben)
+# sync_dir            = Ordner mit den originalen Pro-Sample sync-Dateien
+# out_dir             = Zielordner (Standard-Empfehlung: masked_sync/)
+# min_depth           = optional, Standard = 20
+#
+set -euo pipefail
+
+summary_csv="$1"
+sync_dir="$2"
+out_dir="$3"
+min_depth="${4:-20}"
+
+mkdir -p "$out_dir"
+
+# --- 1. sample -> elbow_depth Lookup-Tabelle bauen (tab-separiert, ohne Header) ---
+mapping_file=$(mktemp)
+
+gawk -F',' '
+NR == 1 {
+    for (i = 1; i <= NF; i++) {
+        gsub(/"/, "", $i)
+        if ($i == "sample")      s_col = i
+        if ($i == "elbow_depth") e_col = i
+    }
+    if (!s_col || !e_col) {
+        print "ERROR: Spalten \"sample\" und/oder \"elbow_depth\" nicht gefunden" > "/dev/stderr"
+        exit 1
+    }
+    next
+}
+{
+    gsub(/"/, "")
+    print $s_col "\t" $e_col
+}' "$summary_csv" > "$mapping_file"
+
+n_samples=$(wc -l < "$mapping_file")
+echo "Gefunden: $n_samples Samples in $summary_csv"
+echo "min_depth = $min_depth, out_dir = $out_dir"
+echo
+
+# --- 2. Maskier-Funktion, einmal pro Sample aufgerufen ---
+mask_sample() {
+    local sample="$1"
+    local elbow="$2"
+    local min="$3"
+    local sdir="$4"
+    local odir="$5"
+
+    local infile
+    infile=$(find "$sdir" -maxdepth 1 -type f -iname "${sample}*sync*" | head -n 1)
+
+    if [[ -z "$infile" ]]; then
+        echo "WARNUNG: keine sync-Datei fuer $sample in $sdir gefunden" >&2
+        return 1
+    fi
+
+    local base
+    base=$(basename "$infile")
+    local outfile="${odir}/${base%.sync}_masked.sync"
+
+    gawk -v min="$min" -v max="$elbow" '
+    BEGIN { FS = "\t"; OFS = "\t" }
+    {
+        n = split($4, a, ":")
+        depth = 0
+        for (i = 1; i <= n; i++) depth += a[i]
+        if (depth < min || depth > max) {
+            $4 = "0:0:0:0:0:0"
+        }
+        print
+    }' "$infile" > "$outfile"
+
+    echo "OK: $sample -> $(basename "$outfile")  (min=$min, max=$elbow)"
+}
+export -f mask_sample
+
+# --- 3. Parallel ueber alle Samples ---
+parallel --colsep '\t' --jobs 8 \
+    mask_sample {1} {2} "$min_depth" "$sync_dir" "$out_dir" \
+    :::: "$mapping_file"
+
+rm -f "$mapping_file"
+
+echo
+echo "Fertig. Maskierte Dateien liegen in: $out_dir"
+
