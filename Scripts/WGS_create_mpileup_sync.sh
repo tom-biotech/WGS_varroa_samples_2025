@@ -228,6 +228,7 @@ p <- ggplot(
     x = x,
     y = y,
     color = sample,
+    group = sample,
     text = paste0(
       "Probe: ", sample,
       "<br>Depth: ", round(x, 1),
