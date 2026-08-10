@@ -233,3 +233,35 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --compress \
 --log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples/SNP_Fst/44_45_vs_28_52_fst.log \
 --threads 20
+
+
+# with poolfstat in R
+
+library(poolfstat)                                                                                                                                                                                                                       
+
+poolsizes_vec <- c(60,60,60,60)
+
+sample_names <- c("B5047-SCH-44","B5047-SCH-45","B5047-SCH-28","B5047-SCH-52")
+                                                                                                                                                                                                                                           
+# multi-sample sync (masked) direkt einlesen                                                                                                                                                                                               
+pooldata <- popsync2pooldata(                                                                                                                                                                                                              
+  sync.file = "44_45_28_52_masked.sync.gz",                                                                                                                                                                                        
+  poolsizes = poolsizes_vec,                                                                                                                                                        
+  poolnames = sample_names                                                                                                                                                                                                                 
+)                                                                                                                                                                                                                                          
+
+# eine Ebene Hierarchie: z.B. Standort/Population als Gruppe
+struct <- c("resistent","resistent","non-resistent","non-resistent")  # Länge = Anzahl Samples
+
+res <- computeFST(
+  pooldata,
+  struct = struct,
+  min.rc = 3,
+  min.maf = 0.01
+  nsnp.per.bjack.block = 1000  # Blockgröße fürs Jackknife,
+  nthreads = 10
+)
+
+res$FST   # global
+res$FSG   # within-group
+res$FGT   # between-group
