@@ -206,7 +206,7 @@ ls /home/tomsch/WGS_36/sub_aligned/sync_files/*.sync | parallel -j 10 \
 awk '{ total += $3 } END { print total/NR }' mean_depth_stats_per_sample.tsv
 '''
 #####
-# Fst calculation
+# Fst calculation for all subsampled sync files (one per sample)
 # Mean Depth: 24.1
 
 /home/tomsch/grenedalf/bin/grenedalf fst \
@@ -229,4 +229,15 @@ awk '{ total += $3 } END { print total/NR }' mean_depth_stats_per_sample.tsv
 
 # calculating significance of allele frequency differences (with popoolation2, Fisher's Exact Test)
 
-perl /home/tomsch/miniconda3/envs/WGS_36/bin/snp-frequency-diff.pl --input p1_p2.sync --output-prefix p1_p2 --min-count 3 --min-coverage 20 --max-coverage 
+######################################################################################################
+# for the different subsamples of B5047-SCH-36 (seqtk -s100 - -s109)
+######################################################################################################
+# calculate depth elbow to mask sync files to min 5 and max Elbow depth
+
+
+
+
+# merge sync files in on sync file
+
+
+perl <popoolation2-path>/fisher-test.pl --input p1_p2.sync --output p1_p2.fet --min-count 6 --min-coverage 10 --max-coverage 200 --suppress-noninformative
