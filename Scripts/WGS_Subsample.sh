@@ -112,7 +112,7 @@ alfred qc \
 ' ::: "$aligned_dir"*_rmd_sub_30.bam
 
 ############################
-# convert bam to pileup file
+# convert bam to pileup and sync file
 ############################
 
 mkdir -p "/home/tomsch/WGS_36/sub_aligned/mpileup_files"
