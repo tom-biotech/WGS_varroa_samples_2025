@@ -265,3 +265,8 @@ res <- computeFST(
 res$FST   # global
 res$FSG   # within-group
 res$FGT   # between-group
+
+##################################################################
+# Fisher exact test with popoolation2
+
+/home/tomsch/miniconda3/envs/WGS_36/bin/fisher-test.pl --input 44_45_28_52_masked.sync --output 44_45_28_52_masked.fet --min-count 3 --max-coverage 400 --suppress-noninformative
