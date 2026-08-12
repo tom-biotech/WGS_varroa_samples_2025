@@ -270,3 +270,7 @@ res$FGT   # between-group
 # Fisher exact test with popoolation2
 
 /home/tomsch/miniconda3/envs/WGS_36/bin/fisher-test.pl --input 44_45_28_52_masked.sync --output 44_45_28_52_masked.fet --min-count 3 --max-coverage 400 --suppress-noninformative
+
+# Cochran-Mantel-Haenszel test: detect consistent allele frequency changes in several biological replicates
+
+/home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input 44_45_28_52_masked.sync --output 44_45_28_52_masked.cmh --min-count 3 --max-coverage 400 --population 1-3,2-4
