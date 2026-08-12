@@ -330,9 +330,20 @@ fwrite(stats_dt, file.path(out_dir, "depth_summary_stats.csv"))
 print(stats_dt)
 
 
-
-
 # merge sync files in on sync file
+paste <(cut -f1-4 /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-36.sync) \     # aus dem aligned Ordner, da die subsample mit der ersten aligned „Generation“ erstellt wurden
+      <(cut -f4 B5047-SCH-36_rmd_sub_30.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_2.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_3.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_4.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_5.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_6.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_7.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_8.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_9.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_10.sync) > B5047-SCH-36_original_and_subs.sync
 
+# fisher-exact test
+# max-coverage of 306 because this is the elbow depth of the original B5047-SCH-36 (from the old Clean fastq)
 
-perl <popoolation2-path>/fisher-test.pl --input p1_p2.sync --output p1_p2.fet --min-count 6 --min-coverage 10 --max-coverage 200 --suppress-noninformative
+/home/tomsch/miniconda3/envs/WGS_36/bin/fisher-test.pl --input B5047-SCH-36_original_and_subs.sync --output B5047-SCH-36_original_and_subs.fet --min-count 3 --min-coverage 10 --max-coverage 306 --suppress-noninformative
