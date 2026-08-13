@@ -331,7 +331,7 @@ print(stats_dt)
 
 
 # merge sync files in on sync file
-paste <(cut -f1-4 /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-36.sync) \     # aus dem aligned Ordner, da die subsample mit der ersten aligned „Generation“ erstellt wurden
+paste <(cut -f1-4 /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-36.sync) \
       <(cut -f4 B5047-SCH-36_rmd_sub_30.sync) \
       <(cut -f4 B5047-SCH-36_rmd_sub_30_2.sync) \
       <(cut -f4 B5047-SCH-36_rmd_sub_30_3.sync) \
@@ -341,7 +341,9 @@ paste <(cut -f1-4 /home/tomsch/WGS_36/aligned/sync_files/B5047-SCH-36.sync) \   
       <(cut -f4 B5047-SCH-36_rmd_sub_30_7.sync) \
       <(cut -f4 B5047-SCH-36_rmd_sub_30_8.sync) \
       <(cut -f4 B5047-SCH-36_rmd_sub_30_9.sync) \
-      <(cut -f4 B5047-SCH-36_rmd_sub_30_10.sync) > B5047-SCH-36_original_and_subs.sync
+      <(cut -f4 B5047-SCH-36_rmd_sub_30_10.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_10.sync) \
+      <(cut -f4 B5047-SCH-36_rmd_sub_10_2.sync) > B5047-SCH-36_original_and_subs.sync
 
 # fisher-exact test
 # max-coverage of 306 because this is the elbow depth of the original B5047-SCH-36 (from the old Clean fastq)
