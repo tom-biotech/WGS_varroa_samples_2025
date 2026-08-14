@@ -293,5 +293,5 @@ paste <(cut -f1-4 B5047-SCH-44_masked.sync) \
       > six_highest_vs_lowest_SMR.sync
 
 # cmh test
-/home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input six_highest_vs_lowest_SMR.sync --output six_highest_vs_lowest_SMR.cmh --min-count 12 --max-coverage 400 --population 1-7,2-8,3-9,4-10,5-11,6-12
+/home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input six_highest_vs_lowest_SMR.sync --output six_highest_vs_lowest_SMR.cmh --min-count 12 --min-coverage 20 --max-coverage 400 --population 1-7,2-8,3-9,4-10,5-11,6-12
 
