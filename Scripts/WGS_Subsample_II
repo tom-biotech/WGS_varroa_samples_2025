@@ -11,7 +11,7 @@ for i in B5047-SCH-{29..31}.sync; do
     /home/tomsch/miniconda3/envs/WGS_36/bin/subsample-synchronized.pl \
       --input "$i" \
       --output "subsample/${name}_sub_${depth}.sync" \
-      --method withoutreplacement \
+      --method withoutreplace \
       --max-coverage 1% \
       --target-coverage "$depth"
   done
