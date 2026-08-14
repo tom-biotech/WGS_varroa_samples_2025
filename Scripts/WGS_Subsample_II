@@ -1,0 +1,20 @@
+# In the first WGS_Subsample.sh, the subsamples where taken from the cleaned fastq file. The Problem is, that this introduces bias towards the sequencing runs (e.g. duplicates). Another point, but more
+# on the resource side was the repeated steps from the fastq files to the sync files. 
+# So now the goal is to just take the sync files, which are already filtered for duplicates, min mapping quality and base quality and as well for min read length und check over a span of read depth 
+
+# subsampling of the sync files with popoolation2 to the depths of 10, 20, 30, 60, 90, 120
+
+for i in B5047-SCH-{29..31}.sync; do
+  name=$(basename "$i" .sync)
+
+  for depth in 10 20 30 60 90 120; do
+    /home/tomsch/miniconda3/envs/WGS_36/bin/subsample-synchronized.pl \
+      --input "$i" \
+      --output "subsample/${name}_sub_${depth}.sync" \
+      --method withoutreplacement \
+      --max-coverage 1% \
+      --target-coverage "$depth"
+  done
+done
+
+
