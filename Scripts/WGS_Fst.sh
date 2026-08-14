@@ -274,3 +274,24 @@ res$FGT   # between-group
 # Cochran-Mantel-Haenszel test: detect consistent allele frequency changes in several biological replicates
 
 /home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input 44_45_28_52_masked.sync --output 44_45_28_52_masked.cmh --min-count 3 --max-coverage 400 --population 1-3,2-4
+
+##################################################################
+# six highest vs lowest SMR samples
+
+paste <(cut -f1-4 B5047-SCH-44_masked.sync) \
+      <(cut -f4 B5047-SCH-40_masked.sync) \
+      <(cut -f4 B5047-SCH-47_masked.sync) \
+      <(cut -f4 B5047-SCH-51_masked.sync) \
+      <(cut -f4 B5047-SCH-57_masked.sync) \
+      <(cut -f4 B5047-SCH-45_masked.sync) \
+      <(cut -f4 B5047-SCH-28_masked.sync) \
+      <(cut -f4 B5047-SCH-52_masked.sync) \
+      <(cut -f4 B5047-SCH-29_masked.sync) \
+      <(cut -f4 B5047-SCH-26_masked.sync) \
+      <(cut -f4 B5047-SCH-56_masked.sync) \
+      <(cut -f4 B5047-SCH-49_masked.sync) \
+      > six_highest_vs_lowest_SMR.sync
+
+# cmh test
+/home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input six_highest_vs_lowest_SMR.sync --output six_highest_vs_lowest_SMR.cmh --min-count 12 --max-coverage 400 --population 1-7,2-8,3-9,4-10,5-11,6-12
+
