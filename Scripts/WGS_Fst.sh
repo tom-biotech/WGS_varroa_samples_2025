@@ -292,6 +292,32 @@ paste <(cut -f1-4 B5047-SCH-44_masked.sync) \
       <(cut -f4 B5047-SCH-49_masked.sync) \
       > six_highest_vs_lowest_SMR.sync
 
+# to avoid gettimg positions where a samples has high and the other zero coverage, filter for positions, where both samples have a min depth of 20 and max of 400
+
+awk -F'\t' '
+{
+  for (k=1; k<=6; k++) tot[k] = 0
+  for (i=4; i<=15; i++) {
+    n = split($i, a, ":")
+    for (k=1; k<=6; k++) tot[k] += a[k]
+  }
+  # find the two globally most abundant alleles at this position
+  max1=0; max2=0; idx1=0; idx2=0
+  for (k=1; k<=6; k++) {
+    if (tot[k] > max1) { max2=max1; idx2=idx1; max1=tot[k]; idx1=k }
+    else if (tot[k] > max2) { max2=tot[k]; idx2=k }
+  }
+  ok = 1
+  for (i=4; i<=15; i++) {
+    n = split($i, a, ":")
+    s = a[idx1] + a[idx2]      # coverage of ONLY the tested (major+minor) alleles
+    if (s < 20 || s > 400) { ok = 0; break }
+  }
+  if (ok) print
+}' six_highest_vs_lowest_SMR.sync > six_highest_vs_lowest_SMR_valid_positions.sync
+
+# -> 212625805 positions retained
+
 # cmh test
 /home/tomsch/miniconda3/envs/WGS_36/bin/cmh-test.pl --input six_highest_vs_lowest_SMR.sync --output six_highest_vs_lowest_SMR.cmh --min-count 12 --min-coverage 20 --max-coverage 400 --population 1-7,2-8,3-9,4-10,5-11,6-12
 
