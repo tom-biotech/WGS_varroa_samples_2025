@@ -29,7 +29,19 @@ sync_dir="/home/tomsch/WGS_36/aligned_new/sync_files"
         done
 '''
 #############################################################
+# from samtools mpileup to sync file
+cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 20 \
+"samtools mpileup -B -f /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+-q 40 -Q 20 -aa -r {} -b bam.list > mpileup_files/WGS_36.{}.mpileup"
 
+# danach in der richtigen Reihenfolge zusammenführen (Reihenfolge aus chromosomes.txt!)
+while read chr; do
+    cat mpileup_files/WGS_36.${chr}.mpileup
+done < /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt > mpileup_files/WGS_36.mpileup
+
+/home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input /home/tomsch/WGS_36/aligned_new/mpileup_files/WGS_36.mpileup --output /home/tomsch/WGS_36/aligned_new/sync_files/WGS_36.sync --fastq-type sanger --min-qual 20 --threads 20
+
+''' for every bam file make their own mpileup
 # from samtools mpileup to sync file
 for i in "$bam_dir"/B5047-SCH-{25..60}_rmd.bam; do name=$(basename ${i} _rmd.bam);
 cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 20 \
@@ -40,6 +52,17 @@ rm "$mpileup_dir"/${name}_N*
 java -ea -Xmx10g -jar \
 /home/tomsch/miniconda3/envs/WGS_36/share/popoolation2-1.201-0/mpileup2sync.jar --input "$mpileup_dir"/${name}.mpileup --output "$sync_dir"/${name}.sync --fastq-type sanger --min-qual 20 --threads 20;
 done
+'''
+#############################################################
+# find and filter indels with popoolation 2
+
+/home/tomsch/miniconda3/envs/WGS_36/bin/identify-indel-regions.pl --input WGS_36.mpileup --output WGS_36_indel_regions.gtf --min-count 2 --indel-window 5
+
+/home/tomsch/miniconda3/envs/WGS_36/bin/filter-sync-by-gtf.pl --input $i --output ${name}_rm_indel.sync --gtf ${name}_indel_regions.gtf
+
+
+#############################################################
+
 
 # create depth file from sync (same as samtools depth)
 # sync_to_depth.sh
