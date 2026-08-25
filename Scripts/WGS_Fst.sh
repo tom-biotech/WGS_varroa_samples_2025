@@ -159,6 +159,30 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples/all_samples_fst.log \
 --threads 20
 
+# with the mitochondria reads removed and in a 20 kb window and 10 kb sliding 
+
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type interval \
+--window-interval-width 20000 \
+--window-interval-stride 10000 \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/masked_sync/mito_removed \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 3 \
+--filter-sample-min-read-depth 20 \
+--filter-sample-max-read-depth 370 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--filter-total-only-biallelic-snps \
+--pool-sizes 60 \
+--file-prefix all_samples_mito_removed_fst_calculation_20k_10k_ \
+--out-dir /home/tomsch/WGS_36/aligned_new/fst_files/all_samples \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples/all_samples_mito_removed_fst_20k_10k.log \
+--threads 20
+
+
 # just for the mitochondrium 
 # MeanDepth = 6836, Sd = 1900 -> so for Depth filter use mean +- 2*Sd -> 10636 - 3036
 ###### ATTENTION!!!!!! MeanDepth was calculated with PanDepth and the raw *rmd.bam. (just the -q from fastp was taken into account), 
