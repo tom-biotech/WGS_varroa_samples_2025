@@ -194,7 +194,7 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --window-type chromosomes \
 --filter-region NC_001566.1:1-16343 \
 --write-pi-tables \
---sync-path /home/tomsch/WGS_36/aligned/sync_files \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files \
 --reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
 --filter-sample-min-count 2 \
 --filter-sample-min-read-depth 3036 \
@@ -202,10 +202,10 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --window-average-policy valid-loci \
 --filter-total-snp-min-frequency 0.01 \
 --pool-sizes 30 \
---file-prefix mito_fst_all_samples \
---out-dir /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito \
+--file-prefix mito_genomwide_fst_all_samples \
+--out-dir /home/tomsch/WGS_36/aligned_new/fst_files/all_samples_mito_genomwide \
 --compress \
---log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito/mito_fst_all_samples.log \
+--log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples_mito/mito_genomwide_fst_all_samples.log \
 --threads 20
 
 
