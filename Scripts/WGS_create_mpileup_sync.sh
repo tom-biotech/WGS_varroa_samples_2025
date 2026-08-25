@@ -97,7 +97,13 @@ parallel -j 5 process_one ::: "$SYNC_DIR"/*.sync
 
 for i in *_depth.txt; do name=$(basename "$i" _depth.txt); awk '$1 != "NC_001566.1"' $i | gzip > ${name}_depth_without_mito.txt.gz; echo "Probe ${name} bearbeitet..."; done
 
-# from there on with an R-Script calculate elbow depth
+# OR take just the mito genome depth -> for analysis of mitochondrium
+
+for i in *_depth.txt.gz; do name=$(basename "$i" _depth.txt.gz); zcat $i | awk '$1 == "NC_001566.1"' | gzip > ${name}_depth_mito.txt.gz; echo "Probe ${name} bearbeitet..."; done
+
+###########################################################################################################################
+# from there on with an R-Script calculate elbow depth of genome WITHOUT MITO
+###########################################################################################################################
 
 library(data.table)
 library(ggplot2)
@@ -190,8 +196,106 @@ fwrite(stats_dt, file.path(out_dir, "depth_summary_stats.csv"))
 print(stats_dt)
 
 
-################################
-# create density plot of all samples
+###########################################################################################################################
+# from there on with an R-Script calculate elbow depth of MITO GENOME
+###########################################################################################################################
+
+library(data.table)
+library(ggplot2)
+library(scales)
+
+setDTthreads(20)
+
+# --- Konfiguration ---
+depth_dir   <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
+out_dir     <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync/density"
+dir.create(out_dir, showWarnings = FALSE)
+
+depth_files <- list.files(depth_dir, pattern = "_depth_mito\\.txt\\.gz$", full.names = TRUE)
+sample_names <- sub("_depth_mito\\.txt\\.gz$", "", basename(depth_files))
+
+cat("Gefundene Samples:", length(depth_files), "\n")
+
+# --- Funktion: Ellbogen via Kneedle auf einer density()-Schätzung ---
+find_elbow <- function(d) {
+  peak_idx <- which.max(d$y)
+  x_desc <- d$x[peak_idx:length(d$x)]
+  y_desc <- d$y[peak_idx:length(d$x)]
+
+  x_norm <- (x_desc - min(x_desc)) / (max(x_desc) - min(x_desc))
+  y_norm <- (y_desc - min(y_desc)) / (max(y_desc) - min(y_desc))
+
+  line_y <- y_norm[1] + (y_norm[length(y_norm)] - y_norm[1]) *
+            (x_norm - x_norm[1]) / (x_norm[length(x_norm)] - x_norm[1])
+  dist_to_line <- line_y - y_norm
+
+  x_desc[which.max(dist_to_line)]
+}
+
+# --- Container für Ergebnisse ---
+density_list <- vector("list", length(depth_files))
+stats_list   <- vector("list", length(depth_files))
+
+# --- Hauptschleife: ein Sample nach dem anderen ---
+for (i in seq_along(depth_files)) {
+
+  f <- depth_files[i]
+  s <- sample_names[i]
+  cat(sprintf("[%d/%d] Verarbeite %s ...\n", i, length(depth_files), s))
+
+  # Nur die Depth-Spalte extrahieren (awk $3) -> deutlich weniger RAM als 3 Spalten
+  depth_vec <- fread(
+    cmd = paste0("zcat ", f, " | grep -v '^#' | awk '{print $3}'"),
+    header = FALSE
+  )[[1]]
+  depth_vec <- as.numeric(depth_vec)
+  depth_vec <- depth_vec[!is.na(depth_vec)]
+  depth_vec <- depth_vec[depth_vec > 0]
+
+  # Kennzahlen
+  mean_d   <- mean(depth_vec)
+  median_d <- median(depth_vec)
+  q95      <- quantile(depth_vec, 0.95, names = FALSE)
+  q99      <- quantile(depth_vec, 0.99, names = FALSE)
+  upper_cut <- quantile(depth_vec, 0.999, names = FALSE)
+
+  # Density nur bis 99.9%-Quantil schätzen (Tail sonst verzerrend)
+  d <- density(depth_vec, from = 0, to = upper_cut, n = 4096)
+
+  modus_d <- d$x[which.max(d$y)]
+  elbow_d <- find_elbow(d)
+
+  stats_list[[i]] <- data.table(
+    sample      = s,
+    elbow_depth = elbow_d,
+    q95         = q95,
+    q99         = q99,
+    mean        = mean_d,
+    median      = median_d,
+    modus       = modus_d
+  )
+
+  density_list[[i]] <- data.table(sample = s, x = d$x, y = d$y)
+
+  # Rohdaten sofort verwerfen
+  rm(depth_vec, d)
+  gc(verbose = FALSE)
+}
+
+# --- Zusammenführen ---
+stats_dt   <- rbindlist(stats_list)
+density_dt <- rbindlist(density_list)
+
+fwrite(stats_dt, file.path(out_dir, "depth_summary_stats_mito.csv"))
+
+print(stats_dt)
+
+
+
+
+###########################################################################################################################
+# create density plot of all samples and the genome WITHOUT MITO
+###########################################################################################################################
 
 library(data.table)
 library(ggplot2)
@@ -292,9 +396,112 @@ ggsave(
 message("Fertig – kombinierter Plot liegt in: ", out_dir)
 
 
-################################################
+###########################################################################################################################
+# create density plot of all samples and the MITO GENOME
+###########################################################################################################################
+
+library(data.table)
+library(ggplot2)
+library(scales)
+library(plotly)
+library(htmlwidgets)
+
+base_dir   <- "/home/tomsch/WGS_36/aligned_new/sync_files/depth_from_sync"
+out_dir    <- file.path(base_dir, "density")
+dir.create(out_dir, showWarnings = FALSE)
+
+sample_numbers <- 25:60
+density_list   <- vector("list", length(sample_numbers))
+
+for (i in seq_along(sample_numbers)) {
+
+  n <- sample_numbers[i]
+  sample_id  <- paste0("B5047-SCH-", n)
+  depth_file <- file.path(base_dir, paste0(sample_id, "_depth_mito.txt.gz"))
+
+  if (!file.exists(depth_file)) {
+    message("Datei fehlt, überspringe: ", depth_file)
+    next
+  }
+
+  message("Verarbeite ", sample_id, " ...")
+
+  depth_dt <- fread(cmd = paste0("zcat ", depth_file, " | grep -v '^#' | awk '{print $3}'"),
+                   header = FALSE)$V1          # <- extract the column, not the whole data.table
+
+  depth_dt <- as.numeric(depth_dt)
+  depth_dt <- depth_dt[!is.na(depth_dt)]
+  depth_dt <- depth_dt[depth_dt > 0]
+
+  upper_cut <- quantile(depth_dt, 0.999)
+  
+  # Dichte berechnen (kompakte Repräsentation, n=4096 Stützstellen)
+  dens <- density(depth_dt, n = 4096, from = 0, to = upper_cut, na.rm = TRUE)
+
+  density_list[[i]] <- data.table(
+    sample = sample_id,
+    x = dens$x,
+    y = dens$y
+  )
+
+  # Rohdaten sofort freigeben, bevor die nächste Probe geladen wird
+  rm(depth_dt, dens, upper_cut)
+  gc()
+}
+
+# Alle Dichtekurven zusammenführen (leichtgewichtig: 36 x 4096 Zeilen statt Milliarden)
+all_dens <- rbindlist(density_list, use.names = TRUE)
+
+p <- ggplot(
+  all_dens,
+  aes(
+    x = x,
+    y = y,
+    color = sample,
+    group = sample,
+    text = paste0(
+      "Probe: ", sample,
+      "<br>Depth: ", round(x, 1),
+      "<br>Density: ", signif(y, 4)
+    )
+  )
+) +
+  geom_line(linewidth = 0.6, alpha = 0.8) +
+  geom_vline(xintercept = 20, color = "red", linetype = "dashed", linewidth = 0.8) +
+  scale_x_continuous(
+    #trans = pseudo_log_trans(sigma = 1, base = 10),
+    breaks = c(0, 20, 100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000),
+    labels = c(0, 20, 100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000)
+  ) +
+  coord_cartesian(xlim = c(0, 9000)) +
+  labs(
+    title = "Coverage Depth Distribution - all samples mitochondria",
+    x = "Depth",
+    y = "Density",
+    color = "Probe"
+  ) +
+  theme_minimal() +
+  theme(legend.key.size = unit(0.3, "cm"))
+
+p_html <- ggplotly(p, tooltip = "text")
+
+saveWidget(
+  p_html,
+  file = file.path(out_dir, "all_samples_MITO_depth_density_log.html"),
+  selfcontained = TRUE
+)
+
+ggsave(
+  filename = file.path(out_dir, "all_samples_MITO_depth_density_log.png"),
+  plot = p, width = 10, height = 6, dpi = 300
+)
+
+message("Fertig – kombinierter Plot liegt in: ", out_dir)
+
+###########################################################################################################################
 # mask_sync_by_elbow.sh
 # mask sync files on the basis of min depth of 20 and max depth of elbow value for every sample
+###########################################################################################################################
 
 #!/bin/bash
 #
