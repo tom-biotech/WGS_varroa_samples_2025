@@ -208,6 +208,28 @@ awk '{ sum += $3; n++ } END { if (n > 0) print sum / n; }' mean_depth_stats_per_
 --log-file /home/tomsch/WGS_36/aligned/fst_files/all_samples_mito/mito_fst_all_samples.log \
 --threads 20
 
+
+# mitochondria for every position
+
+/home/tomsch/grenedalf/bin/grenedalf fst \
+--method unbiased-hudson \
+--window-type single \
+--filter-region NC_001566.1:1-16343 \
+--write-pi-tables \
+--sync-path /home/tomsch/WGS_36/aligned_new/sync_files/mitochondria \
+--reference-genome-fasta /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
+--filter-sample-min-count 6 \
+--filter-sample-min-read-depth 3036 \
+--filter-sample-max-read-depth 10636 \
+--window-average-policy valid-loci \
+--filter-total-snp-min-frequency 0.01 \
+--pool-sizes 30 \
+--file-prefix mito_SNP_fst_all_samples_ \
+--out-dir /home/tomsch/WGS_36/aligned_new/fst_files/all_samples_mito \
+--compress \
+--log-file /home/tomsch/WGS_36/aligned_new/fst_files/all_samples_mito/mito_SNP_fst_all_samples.log \
+--threads 20
+
 # Cathedral-Fst-Plot with grenedalf
 
 /home/tomsch/grenedalf/bin/grenedalf fst-cathedral \
