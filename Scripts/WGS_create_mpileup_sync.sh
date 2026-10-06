@@ -32,7 +32,7 @@ sync_dir="/home/tomsch/WGS_36/aligned_new/sync_files"
 # from samtools mpileup to sync file
 cat /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/chromosomes.txt | parallel -j 20 \
 "samtools mpileup -B -f /home/tomsch/WGS_36/Amel_HAv3.1/ncbi_dataset/data/GCF_003254395.2/GCF_003254395.2_Amel_HAv3.1_genomic.fna \
--q 40 -Q 20 -aa -r {} -b bam.list > mpileup_files/WGS_36.{}.mpileup"
+-q 40 -Q 20 -aa -r {} -b /home/tomsch/WGS_36/aligned_new/mpileup_files/bam.list > mpileup_files/WGS_36.{}.mpileup"
 
 # danach in der richtigen Reihenfolge zusammenführen (Reihenfolge aus chromosomes.txt!)
 while read chr; do
@@ -56,15 +56,119 @@ done
 #############################################################
 # find and filter indels with popoolation 2
 
-/home/tomsch/miniconda3/envs/WGS_36/bin/identify-indel-regions.pl --input WGS_36.mpileup --output WGS_36_indel_regions.gtf --min-count 2 --indel-window 5
+/home/tomsch/miniconda3/envs/WGS_36/bin/identify-indel-regions.pl --input /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/WGS_36.mpileup --output /home/tomsch/WGS_36/aligned_new/mpileup_files/WGS_36_indel_regions.gtf --min-count 2 --indel-window 5
 
-/home/tomsch/miniconda3/envs/WGS_36/bin/filter-sync-by-gtf.pl --input $i --output ${name}_rm_indel.sync --gtf ${name}_indel_regions.gtf
+/home/tomsch/miniconda3/envs/WGS_36/bin/filter-sync-by-gtf.pl --input /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/WGS_36.sync --output /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/WGS_36_rm_indel.sync --gtf /home/tomsch/WGS_36/aligned_new/mpileup_files/WGS_36_indel_regions.gtf
 
+# add header to sync file
+
+#!/bin/bash
+SYNC="/home/tomsch/WGS_36/aligned_new/sync_files/WGS_36_rm_indel.sync"
+SYNC_HEADER="/home/tomsch/WGS_36/aligned_new/sync_files/WGS_36_rm_indel_header.sync"
+
+{
+    printf "#CHROM\tPOS\tREF"
+    for i in $(seq 25 60); do
+        printf "\tB5047-SCH-%02d" "$i"
+    done
+    printf "\n"
+    cat "$SYNC"
+} > "$SYNC_HEADER"
+
+###############################
+# create depth files
+
+#!/bin/bash
+
+SYNC_FILE="/home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/WGS_36_rm_indel_header.sync"
+OUTDIR="/home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/depth_from_sync"
+
+mkdir -p "$OUTDIR"
+
+THREADS=8
+
+
+# =========================================================
+# 1. Probennamen aus dem Header
+# =========================================================
+
+IFS=$'\t' read -r -a HEADER < <(head -n 1 "$SYNC_FILE")
+
+samples=("${HEADER[@]:3}")
+
+echo "Gefundene Proben: ${#samples[@]}"
+
+
+# =========================================================
+# 2. Eine einzige gawk-Ausführung
+# =========================================================
+
+gawk \
+    -v outdir="$OUTDIR" \
+    -v n="${#samples[@]}" \
+    -v sample_names="${samples[*]}" '
+BEGIN {
+    FS="\t"
+    OFS="\t"
+
+    # Probennamen in Array schreiben
+    split(sample_names, names, " ")
+
+    # Ausgabedateien öffnen
+    for (i=1; i<=n; i++) {
+        col=i+3
+        file[col]=outdir "/" names[i] "_depth.txt"
+
+        print "#CHROM", "POS", names[i] > file[col]
+    }
+}
+
+NR==1 {
+    next
+}
+
+{
+    for (col=4; col<=n+3; col++) {
+
+        split($col, cnt, ":")
+
+        depth=cnt[1]+cnt[2]+cnt[3]+cnt[4]+cnt[5]+cnt[6]
+
+        print $1, $2, depth > file[col]
+    }
+}
+' "$SYNC_FILE"
+
+
+echo "Alle ${#samples[@]} Depth-Dateien erstellt."
+
+
+# =========================================================
+# 3. Mitochondrien entfernen + gzip
+# =========================================================
+
+cd "$OUTDIR" || exit 1
+
+parallel -j "$THREADS" '
+    file={}
+    name=$(basename "$file" _depth.txt)
+
+    awk '\''$1 != "NC_001566.1"'\'' "$file" \
+        | gzip > "${name}_depth_without_mito.txt.gz"
+
+    rm "$file"
+
+    echo "Probe ${name} fertig."
+' ::: *_depth.txt
+
+
+echo "Alle Proben fertig."
 
 #############################################################
+#############################################################
+#############################################################
 
-
-# create depth file from sync (same as samtools depth)
+# create depth file from sync files (same as samtools depth) -> single sync for every sample
 # sync_to_depth.sh
 
 #!/bin/bash
