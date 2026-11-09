@@ -8,6 +8,7 @@ set -euo pipefail
 #### using samtools 1.23.1
 #### using pandepth 2.26
 #### using alfred 0.5.3
+#### using fastp 1.3.3
 
 fastq_raw="/drives/HDD_22TB_RAWDATA/20260605_Genewiz_Varroaresistenz/00_fastq"
 mkdir -p "/home/tomsch/WGS_36/Clean_new"
