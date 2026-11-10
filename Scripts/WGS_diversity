@@ -16,15 +16,15 @@ awk '$1 !~ /^NW_/' \
 /home/tomsch/grenedalf/bin/grenedalf diversity \
   --sync-path /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/masked_sync/WGS_36_rm_indel_masked_without_mito_no_NW.sync \
   --filter-sample-min-count 2 \
-  --filter-sample-min-read-depth 10 \
+  --filter-sample-min-read-depth 20 \
   --filter-total-only-biallelic-snps \
   --window-type interval \
   --window-interval-width 20000 \
-  --window-interval-stride 10000 \
+  --window-interval-stride 20000 \
   --window-average-policy valid-loci \
   --pool-sizes 60 \
   --tajima-d-denominator-policy empirical-min-read-depth \
   --threads 20 \
   --out-dir /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/masked_sync/diversity \
-  --file-prefix WGS_36_rm_indel_masked_without_mito \
-  --log-file /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/masked_sync/diversity/WGS_36_rm_indel_masked_without_mito_and_NW_diversity.log
+  --file-prefix WGS_36_rm_indel_masked_without_mito_no_NW_20k_20k_ \
+  --log-file /home/tomsch/WGS_36/aligned_new/sync_files/all_in_one_sync/masked_sync/diversity/WGS_36_rm_indel_masked_without_mito_and_NW_20k_20k_diversity.log
